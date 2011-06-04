@@ -10,7 +10,7 @@ Uebersicht
 TinyAdmin ist ein freies Open-Source-Programm zum schnellen ausfuehren administrativer
 Taetigkeiten und Befehlen auf vielen Servern gleichzeitig, also parallel. 
 Dabei muessen die fremden Server nicht zwangslaeufig das gleiche Betriebssystem haben, 
-der auszufuehrende Befehl wird einfach für jedes Betriebssystem korrekt angepasst.
+der auszufuehrende Befehl wird einfach fuer jedes Betriebssystem korrekt angepasst.
 Zusaetzlich lassen sich Hosts auch pingen oder deren Erreichbarkeit pruefen. 
 Auf Wunsch versendet die Software auch Magic-Packets (Wake-On-LAN).
 
@@ -63,7 +63,7 @@ Starten Sie die ausfuehrbare ".jar"-Datei der Software durch Doppelklick oder ge
 Kommandozeile "java -jar dateiname" ein, wobei "dateiname" durch den Namen der .jar-Datei
 zu ersetzen ist.
 Die Software speichert ihre Einstellungen im Heimatverzeichnis des Benutzers. Dieser Ort variiert,
-abhängig vom verwendeten Betriebssystem.
+abhaengig vom verwendeten Betriebssystem.
 
 Kontakt
 -------
