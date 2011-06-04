@@ -4,50 +4,50 @@
                       Copyright (C) 2011  Tobias Burkard
                          http://tinyadmin.accg.de/
 
-Übersicht
+Uebersicht
 --------
 
-TinyAdmin ist ein freies Open-Source-Programm zum schnellen ausführen administrativer
-Tätigkeiten und Befehlen auf vielen Servern gleichzeitig, also parallel. 
-Dabei müssen die fremden Server nicht zwangsläufig das gleiche Betriebssystem haben, 
-der auszuführende Befehl wird einfach für jedes Betriebssystem korrekt angepasst.
-Zusätzlich lassen sich Hosts auch pingen oder deren Erreichbarkeit prüfen. 
+TinyAdmin ist ein freies Open-Source-Programm zum schnellen ausfuehren administrativer
+Taetigkeiten und Befehlen auf vielen Servern gleichzeitig, also parallel. 
+Dabei muessen die fremden Server nicht zwangslaeufig das gleiche Betriebssystem haben, 
+der auszufuehrende Befehl wird einfach für jedes Betriebssystem korrekt angepasst.
+Zusaetzlich lassen sich Hosts auch pingen oder deren Erreichbarkeit pruefen. 
 Auf Wunsch versendet die Software auch Magic-Packets (Wake-On-LAN).
 
-Momentan werden folgende Systeme unterstützt: 
+Momentan werden folgende Systeme unterstuetzt: 
 CentOS, Debian, Fedora, MacOSX, Mandriva, RedHat (und alle Derivate).
 
-Dieses Programm ist freie Software: Sie können es weiterverbreiten und/oder verändern. 
-Dies dürfen Sie jedoch nur zu den Bedingungen der GNU Generl Public License tun, 
-wie sie von der Free Software Foundation veröffentlicht wurde.
+Dieses Programm ist freie Software: Sie koennen es weiterverbreiten und/oder veraendern. 
+Dies duerfen Sie jedoch nur zu den Bedingungen der GNU Generl Public License tun, 
+wie sie von der Free Software Foundation veroeffentlicht wurde.
 Es gilt nur die Version 2 (GPLv2) dieser Lizenz.
-Eine Kopie dieser Lizenz haben Sie mit dem Download dieser Software erhalten und sie trägt
+Eine Kopie dieser Lizenz haben Sie mit dem Download dieser Software erhalten und sie traegt
 den Dateinamen "LICENSE.txt".
 
 Features
 --------
 
-- Administrieren tausender, unterschiedlicher Hostcomputer über bis zu 10 parallele Prozesse.
-- NEU IN v0.2: Definieren eigener Kommandos, deren auszuführender Befehl dann fuer jedes unterstützte
+- Administrieren tausender, unterschiedlicher Hostcomputer ueber bis zu 10 parallele Prozesse.
+- NEU IN v0.2: Definieren eigener Kommandos, deren auszufuehrender Befehl dann fuer jedes unterstuetzte
 Betriebssystem angepasst werden kann.
-- NEU IN v0.2: Befehle wahlweise als root oder nicht root ausführen. Kommandos werden dementsprechend
+- NEU IN v0.2: Befehle wahlweise als root oder nicht root ausfuehren. Kommandos werden dementsprechend
 automatisch angepasst.
-- Unterstützt viele verschiedene Betriebssysteme der Fremdrechner (z.B. MacOSX oder Debian).
-- Softwareupdates auf vielen Hostcomputer parallel mit nur einem Klick durchführen, 
+- Unterstuetzt viele verschiedene Betriebssysteme der Fremdrechner (z.B. MacOSX oder Debian).
+- Softwareupdates auf vielen Hostcomputer parallel mit nur einem Klick durchfuehren, 
 diese herunterfahren oder rebooten.
-- Testen der Erreichbarkeit fremder Hosts, oder Sammeln von Pingstatistiken über diese.
+- Testen der Erreichbarkeit fremder Hosts, oder Sammeln von Pingstatistiken ueber diese.
 - Weckt fremde Hosts auf bzw. startet diese durch Versand eines Magic-Packets (Wake-On-LAN).
-- Schnell eigene Befehle eingeben und auf vielen Hosts gleichzeitig ausführen lassen.
-- Sicheres Aufbewahren ihrer Passwörter auf der Festplatte durch effektive Verschlüsselung.
-- Eigene SSH2-Implementierung: Es wird keine weitere Software benötigt. Das Programm arbeitet
-  also auch unter Windows, obwohl dort kein SSH verfügbar ist.
+- Schnell eigene Befehle eingeben und auf vielen Hosts gleichzeitig ausfuehren lassen.
+- Sicheres Aufbewahren ihrer Passwoerter auf der Festplatte durch effektive Verschluesselung.
+- Eigene SSH2-Implementierung: Es wird keine weitere Software benoetigt. Das Programm arbeitet
+  also auch unter Windows, obwohl dort kein SSH verfuegbar ist.
 
-Unterstützte Systeme
+Unterstuetzte Systeme
 ---------------------
 
-TinyAdmin läuft auf allen Systeme, auf denen eine JavaSE 1.6 Virtual Machine installiert ist.
+TinyAdmin laeuft auf allen Systeme, auf denen eine JavaSE 1.6 Virtual Machine installiert ist.
 Die Architektur oder das Betriebssystem selbst spielt dabei keine Rolle.
-Es wird allerdings eine grafische Oberfläche benötigt, um das GUI anzuzeigen.
+Es wird allerdings eine grafische Oberflaeche benoetigt, um das GUI anzuzeigen.
 
 Hinweis zum Kompilieren des Sourcecodes
 ----------------------------
@@ -57,9 +57,9 @@ Programmstart nicht.
 
 Installation / Start
 ---------------------
-Vor dem Starten der Software stellen Sie bitte sicher, dass Sie die für ihr Betriebssystem
+Vor dem Starten der Software stellen Sie bitte sicher, dass Sie die fuer ihr Betriebssystem
 aktuellste Version (>=1.6) der JavaSE Virtual Machine von Oracle installiert haben.
-Starten Sie die ausführbare ".jar"-Datei der Software durch Doppelklick oder geben Sie in ihrer
+Starten Sie die ausfuehrbare ".jar"-Datei der Software durch Doppelklick oder geben Sie in ihrer
 Kommandozeile "java -jar dateiname" ein, wobei "dateiname" durch den Namen der .jar-Datei
 zu ersetzen ist.
 Die Software speichert ihre Einstellungen im Heimatverzeichnis des Benutzers. Dieser Ort variiert,
@@ -84,7 +84,7 @@ relevanten Quellcode-Datei (SSHModule).
 
 Die Icons sind aus dem Humanity Icon Theme entnommen, welches mit Ubuntu vertrieben 
 wird und stehen ebenfalls unter der GPLv2.
-Teile der Arbeit basieren auf den Tango icons, welche lizenzfrei zur Verfügung
+Teile der Arbeit basieren auf den Tango icons, welche lizenzfrei zur Verfuegung
 gestellt wurden.
 Das Haupticon der Software hingegen stammt aus dem "Soft Scraps Icons"-Set
 von Deleket (JoJo Mendoza) und wird vertrieben unter der
