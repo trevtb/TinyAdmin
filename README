@@ -4,25 +4,25 @@
                       Copyright (C) 2011  Tobias Burkard
                          http://tinyadmin.accg.de/
 
-Übersicht
+Uebersicht
 --------
 
-TinyAdmin ist ein freie Open-Source-Lösung zur parallelen Serveradministration, also zum schnellen 
-ausführen administrativer Tätigkeiten und Befehlen auf vielen Servern gleichzeitig. 
-Dabei müssen die fremden Hosts nicht zwangsläufig das gleiche Betriebssystem haben, der auszuführende 
-Befehl wird einfach für jedes Betriebssystem korrekt angepasst.
+TinyAdmin ist ein freie Open-Source-Loesung zur parallelen Serveradministration, also zum schnellen 
+ausfuehren administrativer Taetigkeiten und Befehlen auf vielen Servern gleichzeitig. 
+Dabei muessen die fremden Hosts nicht zwangslaeufig das gleiche Betriebssystem haben, der auszufuehrende 
+Befehl wird einfach fuer jedes Betriebssystem korrekt angepasst.
 
-Zusätzlich lassen sich Hosts auch pingen, oder deren Erreichbarkeit prüfen. 
+Zusaetzlich lassen sich Hosts auch pingen, oder deren Erreichbarkeit pruefen. 
 Auf Wunsch versendet die Software auch Magic-Packets (Wake-On-LAN).
 
-Momentan werden folgende Fremdrechner-Betriebssysteme unterstützt: 
+Momentan werden folgende Fremdrechner-Betriebssysteme unterstuetzt: 
 MacOSX, RedHat/CentOS, Debian, Fedora und Mandriva (sowie all deren Derivate).
 
-Dieses Programm ist freie Software: Sie können es weiterverbreiten und/oder verändern. 
-Dies dürfen Sie jedoch nur zu den Bedingungen der GNU Generl Public License tun, 
-wie sie von der Free Software Foundation veröffentlicht wurde.
+Dieses Programm ist freie Software: Sie koennen es weiterverbreiten und/oder veraendern. 
+Dies duerfen Sie jedoch nur zu den Bedingungen der GNU Generl Public License tun, 
+wie sie von der Free Software Foundation veroeffentlicht wurde.
 Es gilt nur die Version 2 (GPLv2) dieser Lizenz.
-Eine Kopie dieser Lizenz haben Sie mit dem Download dieser Software erhalten und sie trägt
+Eine Kopie dieser Lizenz haben Sie mit dem Download dieser Software erhalten und sie traegt
 den Dateinamen "LICENSE.txt".
 
 Features
@@ -30,22 +30,22 @@ Features
 
 - Verwalten Sie mehrere Server gleichzeitig und Verteilen Sie Ihre Aufgabe dabei auf bis zu 10 parallele Prozesse.
 - Zwei Arten von eigenen Kommandos:
-	- OS-Spezifisch: Passen Sie den auszuführenden Befehl für jedes unterstützte Betriebssystem selbst an und speichern Sie Ihre erstellten Kommandos.
-	- Schnell-Ausführung: Führen sie schnell und unkompliziert eigene, nicht os-spezifische, Befehle aus.
-- Führen Sie alle Befehle wahlweise als root oder normaler Benutzer aus: Ihr Kommando wird dementsprechend automatisch für Sie angepasst.
-- Führen Sie Softwareupdates auf vielen Hostcomputern parallel mit nur einem Klick durch, fahren Sie diese herunter, oder rebooten sie: All dies ohne selbst Befehle definieren zu müssen. Die Software arbeitet dabei automatisch mit dem Paketmanager des jeweiligen Hosts zusammen.
+	- OS-Spezifisch: Passen Sie den auszufuehrenden Befehl fuer jedes unterstuetzte Betriebssystem selbst an und speichern Sie Ihre erstellten Kommandos.
+	- Schnell-Ausfuehrung: Fuehren sie schnell und unkompliziert eigene, nicht os-spezifische, Befehle aus.
+- Fuehren Sie alle Befehle wahlweise als root oder normaler Benutzer aus: Ihr Kommando wird dementsprechend automatisch fuer Sie angepasst.
+- Fuehren Sie Softwareupdates auf vielen Hostcomputern parallel mit nur einem Klick durch, fahren Sie diese herunter, oder rebooten sie: All dies ohne selbst Befehle definieren zu muessen. Die Software arbeitet dabei automatisch mit dem Paketmanager des jeweiligen Hosts zusammen.
 - Weckt fremde Hosts auf bzw. startet diese durch Versand eines Magic-Packets (Wake-On-LAN).
-- Testen der Erreichbarkeit fremder Hosts, oder Sammeln von Pingstatistiken über diese.
-- Unterstützt viele verschiedene Fremdrechner-Betriebssysteme (Mac OS X, Debian, Fedora, RedHat, CentOS, Mandriva).
-- Sicheres Aufbewahren ihrer Passwörter auf der Festplatte durch effektive Verschlüsselung.
-- Eigene SSH2-Implementierung: Es wird keine weitere Software benötigt. Das Programm arbeitet also auch unter Windows, obwohl dort kein SSH verfügbar ist.
+- Testen der Erreichbarkeit fremder Hosts, oder Sammeln von Pingstatistiken ueber diese.
+- Unterstuetzt viele verschiedene Fremdrechner-Betriebssysteme (Mac OS X, Debian, Fedora, RedHat, CentOS, Mandriva).
+- Sicheres Aufbewahren ihrer Passwoerter auf der Festplatte durch effektive Verschluesselung.
+- Eigene SSH2-Implementierung: Es wird keine weitere Software benoetigt. Das Programm arbeitet also auch unter Windows, obwohl dort kein SSH verfuegbar ist.
 
-Unterstützte Systeme
+Unterstuetzte Systeme
 ---------------------
 
-TinyAdmin läuft auf allen Systeme, auf denen eine JavaSE 1.6 Virtual Machine installiert ist.
+TinyAdmin laeuft auf allen Systeme, auf denen eine JavaSE 1.6 Virtual Machine installiert ist.
 Die Architektur oder das Betriebssystem selbst spielt dabei keine Rolle.
-Es wird allerdings eine grafische Oberfläche benötigt, um das GUI anzuzeigen.
+Es wird allerdings eine grafische Oberflaeche benoetigt, um das GUI anzuzeigen.
 
 Hinweis zum Kompilieren des Sourcecodes
 ---------------------------------------
@@ -55,13 +55,13 @@ Programmstart nicht.
 
 Installation / Start
 ---------------------
-Vor dem Starten der Software stellen Sie bitte sicher, dass Sie die für ihr Betriebssystem
+Vor dem Starten der Software stellen Sie bitte sicher, dass Sie die fuer ihr Betriebssystem
 aktuellste Version (>=1.6) der JavaSE Virtual Machine von Oracle installiert haben.
-Starten Sie die ausführbare ".jar"-Datei der Software durch Doppelklick oder geben Sie in ihrer
+Starten Sie die ausfuehrbare ".jar"-Datei der Software durch Doppelklick oder geben Sie in ihrer
 Kommandozeile "java -jar dateiname" ein, wobei "dateiname" durch den Namen der .jar-Datei
 zu ersetzen ist.
 Die Software speichert ihre Einstellungen im Heimatverzeichnis des Benutzers. Dieser Ort variiert,
-abhängig vom verwendeten Betriebssystem.
+abhaengig vom verwendeten Betriebssystem.
 
 Kontakt
 -------
@@ -82,7 +82,7 @@ relevanten Quellcode-Datei (SSHModule).
 
 Die Icons sind aus dem Humanity Icon Theme entnommen, welches mit Ubuntu vertrieben 
 wird und stehen ebenfalls unter der GPLv2.
-Teile der Arbeit basieren auf den Tango icons, welche lizenzfrei zur Verfügung
+Teile der Arbeit basieren auf den Tango icons, welche lizenzfrei zur Verfuegung
 gestellt wurden.
 Das Haupticon der Software hingegen stammt aus dem "Soft Scraps Icons"-Set
 von Deleket (JoJo Mendoza) und wird vertrieben unter der
