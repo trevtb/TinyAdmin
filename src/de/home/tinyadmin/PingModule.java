@@ -60,7 +60,7 @@ import java.net.InetAddress;
 *	Verbindung und Messen der Antwortzeit implementiert und es wird auch eine entsprechende Statusmeldung 
 *	fuer das Haupt-GUI generiert.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */

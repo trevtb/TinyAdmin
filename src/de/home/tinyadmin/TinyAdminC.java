@@ -56,7 +56,7 @@ package de.home.tinyadmin;
 *	<p>Sie dient auch als Schnittstelle zwischen der vom Benutzer ueber das GUI ausgefuehrten Aktionen 
 *	und der tatsaechlichen Verarbeitung durch die einzelnen Prozesse, welche auch hier generiert werden.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -281,12 +281,12 @@ public class TinyAdminC {
 			String[] osNames_ref = gui_ref.getOSValues();
 			
 			for (int j=0; j<osNames_ref.length; j++) {
-				if (connectA_ref[i][6].equals(osNames_ref[j])) {
-					if (!test_ref.isRootLogin(connectA_ref[i][2])) {
+				if (connectA_ref[i][8].equals(osNames_ref[j])) {
+					if (!test_ref.isRootLogin(connectA_ref[i][3])) {
 						String command_ref = "";
 						if (sudo) {
 							String[] seps_ref = commands_ref[j+1].split("&&");
-							command_ref = "echo \"" + connectA_ref[i][4] + "\" | sudo -S ";
+							command_ref = "echo \"" + connectA_ref[i][5] + "\" | sudo -S ";
 							if (seps_ref.length > 1) {
 								command_ref += seps_ref[0];
 								for (int k=1; k<seps_ref.length; k++) {
@@ -299,10 +299,12 @@ public class TinyAdminC {
 							command_ref = commands_ref[j+1];
 						} //endif
 						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-												connectA_ref[i][3] + "#D3l1M3t3R#" + command_ref;
-					} else if (test_ref.isRootLogin(connectA_ref[i][2])) {
+											connectA_ref[i][6] + "#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + 
+												connectA_ref[i][4] + "#D3l1M3t3R#" + command_ref;
+					} else if (test_ref.isRootLogin(connectA_ref[i][3])) {
 						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-												connectA_ref[i][3] + "#D3l1M3t3R#"+ commands_ref[j+1];
+												connectA_ref[i][6] + "#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + 
+												connectA_ref[i][4] + "#D3l1M3t3R#"+ commands_ref[j+1];
 					} //endif
 				} //endif
 			} //endfor
@@ -339,94 +341,100 @@ public class TinyAdminC {
 		for (int i=0; i<connectA_ref.length; i++) {
 			finalArray_ref[i][0] = connectA_ref[i][0];
 			finalArray_ref[i][2] = type_ref;
-			if (!test_ref.isRootLogin(connectA_ref[i][2])) {
+			if (!test_ref.isRootLogin(connectA_ref[i][3])) {
 				if (type_ref.equals("update")) {
-					if (connectA_ref[i][6].equals("Debian")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-												connectA_ref[i][3] + "#D3l1M3t3R#" + 
-												"echo \"" + connectA_ref[i][4] + "\" | sudo -S apt-get update && " + 
-												"echo \"" + connectA_ref[i][4] + "\" | sudo -S apt-get -y upgrade && " + 
-												"echo \"" + connectA_ref[i][4] + "\" | sudo -S apt-get clean && exit";
-					} else if (connectA_ref[i][6].equals("MacOSX")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#" + "echo \"" + connectA_ref[i][4] + 
-						"\" | sudo -S softwareupdate -i -a && exit";
-					} else if (connectA_ref[i][6].equals("RedHat") || connectA_ref[i][6].equals("CentOS") || connectA_ref[i][6].equals("Fedora")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#" + 
-						"echo \"" + connectA_ref[i][4] + "\" | sudo -S yum -y update yum && " +
-						"echo \"" + connectA_ref[i][4] + "\" | sudo -S yum -y update && exit";
-					} else if (connectA_ref[i][6].equals("Mandriva")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#" + 
-						"echo \"" + connectA_ref[i][4] + "\" | sudo -S urpmq --auto --auto-select && " + 
-						"echo \"" + connectA_ref[i][4] + "\" | sudo -S urpmi --update --auto --auto-select && exit";
+					if (connectA_ref[i][8].equals("Debian")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+												"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+												"echo \"" + connectA_ref[i][5] + "\" | sudo -S apt-get update && " + 
+												"echo \"" + connectA_ref[i][5] + "\" | sudo -S apt-get -y upgrade && " + 
+												"echo \"" + connectA_ref[i][5] + "\" | sudo -S apt-get clean && exit";
+					} else if (connectA_ref[i][8].equals("MacOSX")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+						"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+						"echo \"" + connectA_ref[i][5] + "\" | sudo -S softwareupdate -i -a && exit";
+					} else if (connectA_ref[i][8].equals("RedHat") || connectA_ref[i][6].equals("CentOS") || connectA_ref[i][6].equals("Fedora")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+						"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+						"echo \"" + connectA_ref[i][5] + "\" | sudo -S yum -y update yum && " +
+						"echo \"" + connectA_ref[i][5] + "\" | sudo -S yum -y update && exit";
+					} else if (connectA_ref[i][8].equals("Mandriva")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + "#D3l1M3t3R#" + 
+												connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+						"echo \"" + connectA_ref[i][5] + "\" | sudo -S urpmq --auto --auto-select && " + 
+						"echo \"" + connectA_ref[i][5] + "\" | sudo -S urpmi --update --auto --auto-select && exit";
 					} //endif
 				} else if (type_ref.equals("reboot")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-											connectA_ref[i][3] + "#D3l1M3t3R#" + "echo \"" + connectA_ref[i][4] + 
-											"\" | sudo -S reboot";
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+											"echo \"" + connectA_ref[i][5] + "\" | sudo -S reboot";
 				} else if (type_ref.equals("shutdown")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-											connectA_ref[i][3] + "#D3l1M3t3R#" + "echo \"" + connectA_ref[i][4] + 
-											"\" | sudo -S shutdown -h now";
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+											"echo \"" + connectA_ref[i][5] + "\" | sudo -S shutdown -h now";
 				} else if (type_ref.equals("test")) {
 					finalArray_ref[i][1] = connectA_ref[i][1];
 				} else if (type_ref.equals("ping")) {
 					finalArray_ref[i][1] = connectA_ref[i][1];
 				} else if (type_ref.equals("wol")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] +"#D3l1M3t3R#"+ connectA_ref[i][5];
+					finalArray_ref[i][1] = connectA_ref[i][1] +"#D3l1M3t3R#"+ connectA_ref[i][7];
 				} else if (type_ref.equals("custom")) {
 					String cmd_ref = "";
 					if (sudo) {
-						cmd_ref = "echo \"" + connectA_ref[i][4] + "\" | sudo -S ";
-						String[] seps_ref = connectA_ref[i][7].split("&&");
+						cmd_ref = "echo \"" + connectA_ref[i][5] + "\" | sudo -S ";
+						String[] seps_ref = connectA_ref[i][9].split("&&");
 						if (seps_ref.length > 1) {
 							cmd_ref += seps_ref[0];
 							for (int k=1; k<seps_ref.length; k++) {
-								cmd_ref += " && echo \"" + connectA_ref[i][4] + "\" | sudo -S " + seps_ref[k];
+								cmd_ref += " && echo \"" + connectA_ref[i][5] + "\" | sudo -S " + seps_ref[k];
 							} //endfor
 						} else {
-							cmd_ref += connectA_ref[i][7];
+							cmd_ref += connectA_ref[i][9];
 						} //endif
 					} //endif
 					if (!cmd_ref.equals("")) {
-						connectA_ref[i][7] = cmd_ref;
+						connectA_ref[i][9] = cmd_ref;
 					} //endif
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-					connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][7];
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + connectA_ref[i][9];
 				} //endif
-			} else if (test_ref.isRootLogin(connectA_ref[i][2])) {
+			} else if (test_ref.isRootLogin(connectA_ref[i][3])) {
 				if (type_ref.equals("update")) {
-					if (connectA_ref[i][6].equals("Debian")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-											connectA_ref[i][3] + "#D3l1M3t3R#"+ "apt-get update && " + 
-											"apt-get -y upgrade && apt-get clean && exit";
-					} else if (connectA_ref[i][6].equals("MacOSX")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#"+ "softwareupdate -i -a && exit";
-					} else if (connectA_ref[i][6].equals("RedHat") || connectA_ref[i][6].equals("CentOS") || connectA_ref[i][6].equals("Fedora")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#"+ "yum -y update yum && yum -y update && exit";
-					} else if (connectA_ref[i][6].equals("Mandriva")) {
-						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-						connectA_ref[i][3] + "#D3l1M3t3R#"+ "urpmq --auto --auto-select && urpmi --update --auto --auto-select && exit";
+					if (connectA_ref[i][8].equals("Debian")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+												"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+												"apt-get update && apt-get -y upgrade && apt-get clean && exit";
+					} else if (connectA_ref[i][8].equals("MacOSX")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+												"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+												"softwareupdate -i -a && exit";
+					} else if (connectA_ref[i][8].equals("RedHat") || connectA_ref[i][8].equals("CentOS") || connectA_ref[i][8].equals("Fedora")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+												"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+												"yum -y update yum && yum -y update && exit";
+					} else if (connectA_ref[i][8].equals("Mandriva")) {
+						finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+												"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+												"urpmq --auto --auto-select && urpmi --update --auto --auto-select && exit";
 					} //endif
 				} else if (type_ref.equals("reboot")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-											connectA_ref[i][3] + "#D3l1M3t3R#" + "reboot";
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+											"reboot";
 				} else if (type_ref.equals("shutdown")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-					connectA_ref[i][3] + "#D3l1M3t3R#" + "shutdown -h now";
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" + 
+											"shutdown -h now";
 				} else if (type_ref.equals("test")) {
 					finalArray_ref[i][1] = connectA_ref[i][1];
 				} else if (type_ref.equals("ping")) {
 					finalArray_ref[i][1] = connectA_ref[i][1];
 				} else if (type_ref.equals("wol")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] +"#D3l1M3t3R#"+ connectA_ref[i][5];
+					finalArray_ref[i][1] = connectA_ref[i][1] +"#D3l1M3t3R#"+ connectA_ref[i][7];
 				} else if (type_ref.equals("custom")) {
-					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + 
-					connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][7];
+					finalArray_ref[i][1] = connectA_ref[i][1] + "#D3l1M3t3R#" + connectA_ref[i][2] + "#D3l1M3t3R#" + connectA_ref[i][6] + 
+											"#D3l1M3t3R#" + connectA_ref[i][3] + "#D3l1M3t3R#" + connectA_ref[i][4] + "#D3l1M3t3R#" +  
+											connectA_ref[i][9];
 				} //endif
 			} //endif
 		} //endfor

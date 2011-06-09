@@ -83,7 +83,7 @@ import javax.swing.SwingConstants;
 *	@see TinyAdminC#performAction(String, boolean, String[][], int)
 *	@see TinyAdminGUI#setStatusText(String)
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -111,14 +111,12 @@ class CustomCMDHelfer {
 	// --- Methoden
 	/**
 	 *	<p>Diese Methode baut das GUI zum Abfragen des Befehls vom Benutzer.
-	 *	Es wird ein einfaches GUI mit einem JTextField <i>kommando_ref</i> und zwei
-	 *	JButtons (Ok, Abbrechen) erzeugt.</p>
+	 *	Es wird ein einfaches GUI mit einem JTextField <i>kommando_ref</i>,zwei
+	 *	JButtons (Ok, Abbrechen) und einer JCheckBox <i>asroot_ref</i> erzeugt.</p>
 	 *	<p>Das Textfeld erhaelt einen KeyListener <i>CustomKeyListener</i>, um die
 	 *	Ausfuehrung durch das Drucken der "Enter"-Taste auszuloesen.</p>
 	 *	<p>Die beiden Buttons bekommen einen <i>CustomButtonListener</i>, der sich um
 	 *	die weitere Verarbeitung kuemmert.</p>
-	 *	<p>Zusaetzlich wird eine JCheckBox <i>asroot_ref</i> erzeugt, ueber welche der
-	 *	Benutzer steuern kann, ob der Befehl als <i>root</i> ausgefuehrt werden soll.
 	 *
 	 *	@see CustomKeyListener
 	 *	@see CustomButtonListener
@@ -181,7 +179,7 @@ class CustomCMDHelfer {
 	 *	welche an die <i>performAction()</i>-Methode des Hauptprogramms weitergegeben werden kann.</p>
 	 *	<p>Dies geschieht nur dann, wenn der Benutzer auch wirklich einen Befehl eingegeben hat: Ist das
 	 *	Textfeld leer, macht die Methode garnichts</p>
-	 *	<p>Die zu uebergebende Matrix erhaelt eine 8. Spalte, in der sich der an die Methode uebergebene Befehl 
+	 *	<p>Die zu uebergebende Matrix erhaelt eine 10. Spalte, in der sich der an die Methode uebergebene Befehl 
 	 *	<i>action_ref</i> befindet.</p>
 	 *	<p>Der <i>performAction()</i> Methode wird auch mitgeteilt, ob der Benutzer die Ausfuehrung als 
 	 *	<i>root</i> wuenscht oder nicht. Dies wird ueber das 2. Argument (<i>boolean sudo</i>) gesteuert, 
@@ -200,10 +198,10 @@ class CustomCMDHelfer {
 			customFrame_ref = null;
 			gui_ref.setStatusText("Eigenes Kommando: Eingabe erfasst, beginne Verarbeitung...\n");
 			String[][] actionDataOld_ref = gui_ref.getActionData();
-			String[][] actionData_ref = new String[actionDataOld_ref.length][8];
+			String[][] actionData_ref = new String[actionDataOld_ref.length][10];
 			for (int i=0; i<actionData_ref.length; i++) {
 				for (int j=0; j<actionData_ref[i].length; j++) {
-					if (j<7) {
+					if (j<9) {
 						actionData_ref[i][j] = actionDataOld_ref[i][j];
 					} else {
 						actionData_ref[i][j] = action_ref;
@@ -229,7 +227,7 @@ class CustomCMDHelfer {
 	 *	@see TinyAdminGUI
 	 *	@see CustomCMDHelfer#doAction(String)
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
@@ -253,7 +251,7 @@ class CustomCMDHelfer {
 	 *
 	 *	@see CustomCMDHelfer#doAction(String)
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
@@ -271,10 +269,10 @@ class CustomCMDHelfer {
 	/**
 	 *	Listener fuer den JFrame <i>customFrame_ref</i> (Das Fenster des Custom-Command-GUIs),
 	 *	um vor dem Schliessen noch eine Statusmeldung im Haupt-GUI absetzen zu koennen.
-	 *
-	 * 	@author tobi
 	 * 
-	 *	@version 0.2 von 06.2011
+	 *	@version 0.3 von 06.2011
+	 *
+	 *	@author Tobias Burkard
 	 */
 	private class WindowEventListener extends WindowAdapter {
 		public void windowClosing(WindowEvent ev_ref) {

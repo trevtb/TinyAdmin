@@ -54,7 +54,7 @@ package de.home.tinyadmin;
 *	Ein Objekt dieser Klasse stellt Werkzeuge bereit, um Werte zu validieren. Das Einstellungs-GUI
 *	kann beispielsweise hierauf zurueckgreifen, um vom Benutzer eingegebene Werte zu ueberpruefen.
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -132,5 +132,32 @@ class TestHelfer {
 		} //endif
 		return retVal;
 	} //endmetho isValidIP
+	
+	/**
+	 *	<p>Ueberprueft, ob es sich bei dem uebergebenen String um eine gueltige Portnummer handelt.
+	 *	Es wird getestet, ob der String:<ul>
+	 *	<li>Ein ganzzahliger Integer</li>
+	 *	<li>und kleiner als 65535 ist.</li></ul></p>
+	 *	<p>Ist all dies der Fall, liefert die Methode ein boolean mit dem Wert <i>true</i> zurueck.</p>
+	 *
+	 *	@param port_ref Die zu pruefende Portnummer.
+	 *	@return <i>true</i>, falls die Adresse gueltig ist - <i>false</i>, wenn nicht.
+	 */
+	boolean isValidPort(String port_ref) {
+		boolean retVal = true;
+		int port = -1;
+		
+		try {
+			port = Integer.parseInt(port_ref);
+		} catch (Exception ex_ref) {
+			retVal = false;
+		} //endtry
+		
+		if (port < 0 || port > 65535) {
+			retVal = false;
+		} //endif
+		
+		return retVal;
+	} //endmethod isValidPort
 	
 } //endclass TestHelfer

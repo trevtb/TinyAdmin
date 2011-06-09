@@ -61,7 +61,7 @@ import java.net.InetAddress;
 *	<p>Hier ist der Code fuer das Generieren und Versenden des <i>Magic Packets</i> in der <i>doAction()</i>-
 *	Methode implementiert und es wird auch eine entsprechende Statusmeldung generiert.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */

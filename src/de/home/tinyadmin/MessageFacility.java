@@ -64,7 +64,7 @@ import java.util.regex.Pattern;
 *
 *	@see TinyAdminGUI
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -77,7 +77,7 @@ class MessageFacility {
 	private String errorMsg_ref;	// Behaelter fuer erfasste Fehlermeldungen. Trennzeichen ist "\n"
 	private final String[] ERRNAMES = {"CommandNotFoundOnHost", "SudoWrongPWD", "SSHHostsNotReachable", "SSHNoConnectionOnPort22", 
 								"SSHInvalidLogin", "TestHostsNotReachable", "WOLHostsNotReachable",
-								"WOLMacAddressProblems", "InvalidSyntax", "SSHAuthProblems"}; // Namen der moeglichen Fehlermeldungen 
+								"WOLMacAddressProblems", "InvalidSyntax", "SSHAuthProblems", "KeyNotFound"}; // Namen der moeglichen Fehlermeldungen 
 	private TinyAdminGUI gui_ref;	// Referenz auf das HauptGUI-Objekt um (Fehler)meldungen anzuzeigen.
 	private TinyAdminC main_ref;	// Referenz auf das Hauptprogramm
 	// --- Konstruktoren
@@ -244,7 +244,8 @@ class MessageFacility {
 							{"IP-Adresse ist ungültig"},
 							{"keine MAC-Adresse"},
 							{"syntax error", "Syntax Fehler"},
-							{"Authentication failed"}};
+							{"Authentication failed"},
+							{"Keyfile konnte nicht gefunden werden."}};
 		for (int i=0; i<patternMatrix_ref.length; i++) {
 			int counter = 0;
 			for (int j=0; j<patternMatrix_ref[i].length; j++) {
@@ -301,7 +302,8 @@ class MessageFacility {
 									"FEHLER: Die Host- oder IP-Adresse folgender Hosts ist ungültig:\n",
 									"FEHLER: Sie haben für folgende Hosts keine MAC-Adresse angegeben:\n",
 									"FEHLER: Der eingegebene Befehl erzeugte auf folgenden Hosts einen Sytnax-Error:\n",
-									"FEHLER: Folgende Hosts scheinen einen Login ohne interaktive Passworteingabe nicht zu unterstützen:"
+									"FEHLER: Folgende Hosts scheinen einen Login ohne interaktive Passworteingabe nicht zu unterstützen:\n",
+									"FEHLER: Für folgende Hosts wurde das Keyfile nicht gefunden, überprüfen Sie den Pfad:\n"
 		};
 		
 		if (errorMsg_ref.isEmpty()) {

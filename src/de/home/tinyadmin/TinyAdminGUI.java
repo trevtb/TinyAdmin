@@ -1,13 +1,23 @@
 package de.home.tinyadmin;
 
 //--- Importe
+import java.awt.CheckboxMenuItem;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Menu;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -92,7 +102,7 @@ import javax.swing.text.Utilities;
 *
 *	@see TinyAdminSettingsGUI
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -113,6 +123,7 @@ class TinyAdminGUI {
 	private Box mainBBox_ref;								// Fasst die Hostauswahl
 	private Box topBox_ref;									// Fasst die mainSelBox_ref und das Icon
 	private TinyAdminSettingsGUI settingsGUI_ref;			// Referenz auf das Einstellungs-GUI
+	private AddHostGUI addHostGui_ref;						// Referenz auf eine moegliche Instanz des AddHost-GUIs
 	private String[][][] settings_ref;						// Die Host-Tabellenmatrix in String-Form
 	private HighlightPainter painter_ref;					// Das Zeichenobjekt zum markieren von Text in statusField_ref
 															// siehe highlightText(int start, int end)
@@ -125,19 +136,27 @@ class TinyAdminGUI {
 	private JButton ccBut_ref;								// "Ausfuehren"-Button fuer die eigenen Aktionen
 	private JCheckBox asroot_ref;							// Legt fest ob der gewaehlte Custom-Command als root ausgefuehrt
 															// werden soll
+	private TrayIcon trayIcon_ref;							// Das TrayIcon
+	private Menu customMen_ref;								// Das Untermenue des TrayIcons fuer benutzereigene Befehle
+	private CheckboxMenuItem cstmAsRoot_ref;				// Die "als root ausfuehren?"-Checkbox im Untermenue fuer benutzereigene
+															// Befehle des TrayIcons
+	private Box seleBox_ref;								// Haelt die Hosteintraege (mit JCheckBoxes)
+	private final String[] BNAMES = {"Update", "Reboot", "Shutdown", "Custom", "Test", "Ping", "WOL"}; // Namen der Standardkommandos
 	
 	// --- Konstruktoren
 	/**	
 	*	<p>Setzt die uebergebene Referenz auf das Hauptprogramm und initialisiert
 	*	alle Hilfsobjekt wie z.B. die zur Datei Ein-/Ausgabe. Es werden die bereits gespeicherten Einstellungen, 
-	*	falls vorhanden, geladen.</p> <p>Es werden auch alle, der Anwendung bekannten Aktionsknoepfe fuer die
-	*	einzelnen Funktionen generiert.</p>
+	*	falls vorhanden, geladen.</p> 
+	*	<p>Es werden auch alle, der Anwendung bekannten Aktionsknoepfe fuer die einzelnen Funktionen generiert 
+	*	und alle sonst noetigen Objekte initialisiert.</p>
 	*/
 	TinyAdminGUI(TinyAdminC tAShell_ref) {
 		this.tAShell_ref = tAShell_ref;
 		this.helfer_ref = tAShell_ref.getIOHelfer();
 		this.test_ref = tAShell_ref.getTestHelfer();
 		actionButtons_ref = createActionButtons();
+		customMen_ref = null;
 	} //endconstructor 
 	
 	// --- Methoden
@@ -146,26 +165,27 @@ class TinyAdminGUI {
 	 *	zu setzen. Im Anschluss daran wird das GUI gebaut und mit Hilfe der durch den <i>IOHelfer</i> eingelesenen
 	 *	Werte gefuettert.</p> <p>Die Aktionsknoepfe im unteren Teil, werden durch eine eigene Methode,
 	 *	<i>createActionButtons()</i>, generiert. Das Status-Textfeld wird auf den Standardtext mit der 
-	 *	<i>setStandardText()</i>-Methode gesetzt.</p> <p>Der Hauptframe erhaelt eine Menubar, deren Elementen jeweils
-	 *	ein <i>MenuListener</i> hinzugefuegt wird. Die Knoepfe erhalten jeweils einen <i>ButtonListener</i>.</p>
+	 *	<i>setStandardText()</i>-Methode gesetzt. Das TrayIcon wird mit der Methode <i>createTray()</i> generiert.</p>
+	 *	<p>Der Hauptframe erhaelt eine Menubar, deren Elementen jeweils ein <i>MenuListener</i> hinzugefuegt wird. 
+	 *	Die Knoepfe erhalten jeweils einen <i>ButtonListener</i>. Das Fenster selbst erhalten einen <i>FrameListener</i></p>
 	 *
 	 *	@see #tryNativeLook()
 	 *	@see #createActionButtons()
+	 *	@see #createTray()
 	 *	@see #setStandardText()
 	 *	@see MenuListener
 	 *	@see ButtonListener
+	 *	@see FrameListener
 	 *	@see IOHelfer
 	 */
 	void drawGUI() {
 		settings_ref = helfer_ref.readSettings();
 		tryNativeLook();
-		mainHosts_ref = new Object[settings_ref[0].length][2];
-		for (int i=0; i<mainHosts_ref.length; i++) {
-			mainHosts_ref[i][0] = new JLabel(settings_ref[0][i][0]);
-			mainHosts_ref[i][1] = new JCheckBox();
-			((JCheckBox)mainHosts_ref[i][1]).setSelected(true);
-		} //endfor
-		mainFrame_ref = new JFrame("TinyAdmin v0.2");
+		mainFrame_ref = new JFrame("TinyAdmin v0.3");
+		
+		// Tray erzeugen
+		createTray();
+		
 		ImageIcon frameIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/appIcon.png"));
 		mainFrame_ref.setIconImage(frameIcon_ref.getImage());
 		mainFrame_ref.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -180,6 +200,7 @@ class TinyAdminGUI {
 		topBox_ref.add(appIconLab_ref);
 		topBox_ref.add(Box.createVerticalStrut(1));
 		
+		// Menubar erzeugen
 		JMenuBar menuBar_ref = new JMenuBar();
 		JMenu dateiMenu_ref = new JMenu("Datei");
 		JMenuItem beendenMenuIt_ref = new JMenuItem("Beenden");
@@ -201,70 +222,27 @@ class TinyAdminGUI {
 		menuBar_ref.add(hilfeMenu_ref);
 		mainFrame_ref.setJMenuBar(menuBar_ref);
 		
-		Box seleBox_ref = new Box(BoxLayout.Y_AXIS);
-		int count = mainHosts_ref.length / 4;
-		double cOne = ((double)mainHosts_ref.length) / 4.0;
-		cOne = cOne - (int)cOne;
-		if (cOne > 0.0) {
-			count++;
-		} //endif
-		
-		int co = 0;
-		for (int i=0; i<count; i++) {
-			Box lineBox_ref = new Box(BoxLayout.X_AXIS);
-			int exEl = 0;
-			if ((settings_ref[0].length % 4) > 0) {
-				exEl = settings_ref[0].length % 4;
-			} //endif
-			
-			if ((exEl > 0) && (i != (count-1))) {
-				for (int j=0; j<4; j++) {
-					lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
-					lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
-					
-					if (j != 3) {
-						lineBox_ref.add(new JLabel("  |  "));
-					} //endif
-					co++;
-				} //endfor
-			} else if ((exEl > 0) && (i == (count-1))) {
-				for (int j=0; j<exEl; j++) {
-					lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
-					lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
-					
-					if (j != (exEl -1)) {
-						lineBox_ref.add(new JLabel("  |  "));
-					} //endif
-					co++;
-				} //endfor
-			} else if (exEl == 0) {
-				for (int j=0; j<4; j++) {
-					if (co < mainHosts_ref.length) {
-						lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
-						lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
-						
-						if (j != 3) {
-							lineBox_ref.add(new JLabel("  |  "));
-						} //endif
-					} //endif
-					co++;
-				} //endfor
-			} //endif
-			seleBox_ref.add(lineBox_ref);
-		} //endfor
+		refreshHostList(false);
 		JScrollPane seleScrollPane_ref = new JScrollPane(seleBox_ref);
 		seleScrollPane_ref.setPreferredSize(new Dimension(600, 50));
 		seleScrollPane_ref.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		seleScrollPane_ref.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
+		ImageIcon allSIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/allSIcon.png"));
 		mainSelBox_ref.add(seleScrollPane_ref);
 		mainSelBox_ref.add(Box.createHorizontalStrut(15));
-		ImageIcon allSIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/allSIcon.png"));
+		Box selButBox_ref = new Box(BoxLayout.Y_AXIS);
 		JButton allBut_ref = new JButton("alle", allSIcon_ref);
 		allBut_ref.setToolTipText("Alle Elemente auswählen/abwählen.");
 		allBut_ref.addActionListener(new ButtonListener());
-		mainSelBox_ref.add(allBut_ref);
+		selButBox_ref.add(allBut_ref);
+		selButBox_ref.add(Box.createVerticalStrut(2));
+		ImageIcon addIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/addIcon.png"));
+		JButton addBut_ref = new JButton("neu", addIcon_ref);
+		addBut_ref.setToolTipText("Fügt einen neuen Host hinzu.");
+		addBut_ref.addActionListener(new ButtonListener());
+		selButBox_ref.add(addBut_ref);
 		
+		mainSelBox_ref.add(selButBox_ref);
 		mainSelBox_ref.setBorder(new TitledBorder("Host-Auswahl"));
 		
 		Box statusBox_ref = new Box(BoxLayout.Y_AXIS);
@@ -395,6 +373,154 @@ class TinyAdminGUI {
 	} //endmethod drawGUI
 	
 	/**
+	 *	<p>Erzeugt das TrayIcon der Anwendung und alle darin enthaltenen Menues. Das TrayIcon selbst
+	 *	(<i>tracIcon_ref</i>) erhaelt einen <i>TrayListener</i>, die Elemente des Untermenues fuer
+	 *	benutzereigene Kommandos erhalten einen <i>CustomTrayListener</i> und die normalen Kommandos
+	 *	einen <i>MenuListener</i> bzw. <i>ButtonListener</i>.</p>
+	 *	<p>Eine Referenz auf das Untermenue fuer benutzereigene Kommandos wird in der Variablen 
+	 *	<i>customMen_ref</i> gehalten, um dieses so bei Bedarf mit neuen Werten zu fuettern. 
+	 *	Dies geschieht ueber die Methode <i>refreshTrayCommandList()</i>.</p>
+	 *	<p>Die Namen fuer Standard-Kommandos werden der finalen Objektvariablen <i>BNAMES</i> entnommen.</p>
+	 *
+	 *	@see TrayListener
+	 *	@see TrayCustomListener
+	 *	@see MenuListener
+	 *	@see ButtonListener
+	 *	@see #refreshTrayCommandList()
+	 */
+	private void createTray() {
+		if (SystemTray.isSupported()) {
+			SystemTray tray_ref = null;
+			try {
+				tray_ref = SystemTray.getSystemTray();
+			} catch (Exception ex_ref) {
+				ex_ref.printStackTrace();
+			} //endtry
+			
+			if (tray_ref != null) {
+			    ImageIcon trayImg_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/appIcon.png"));
+			    PopupMenu popupMen_ref = new PopupMenu();
+			    
+			    Menu commandMen_ref = new Menu("Kommandos");
+			    for (int i=0; i<BNAMES.length; i++) {
+			    	MenuItem menIt_ref = new MenuItem(BNAMES[i]);
+			    	menIt_ref.addActionListener(new ButtonListener());
+			    	commandMen_ref.add(menIt_ref);
+			    } //endfor
+			    
+			    customMen_ref = new Menu("Eigene Befehle");
+			    refreshTrayCommandList();
+			    
+			    MenuItem menItNewHost_ref = new MenuItem("Host hinzufügen");
+			    menItNewHost_ref.setActionCommand("neu");
+			    MenuItem menItEinst_ref = new MenuItem("Einstellungen");
+			    MenuItem menItUeber_ref = new MenuItem("Über");
+			    MenuItem menItBeend_ref = new MenuItem("Beenden");
+			    menItNewHost_ref.addActionListener(new ButtonListener());
+			    menItEinst_ref.addActionListener(new MenuListener());
+			    menItUeber_ref.addActionListener(new MenuListener());
+			    menItBeend_ref.addActionListener(new MenuListener());
+			    
+			    popupMen_ref.add(commandMen_ref);
+			    popupMen_ref.add(customMen_ref);
+			    popupMen_ref.addSeparator();
+			    popupMen_ref.add(menItNewHost_ref);
+			    popupMen_ref.add(menItEinst_ref);
+			    popupMen_ref.addSeparator();
+			    popupMen_ref.add(menItUeber_ref);
+			    popupMen_ref.add(menItBeend_ref);
+
+			    trayIcon_ref = new TrayIcon(trayImg_ref.getImage(), "TinyAdmin v0.3", popupMen_ref);
+			    trayIcon_ref.addMouseListener(new TrayListener());
+			    trayIcon_ref.setImageAutoSize(true);
+			    
+			    try {
+			        tray_ref.add(trayIcon_ref);
+			        mainFrame_ref.addWindowListener(new FrameListener());
+			    } catch (Exception ex_ref) {
+			        ex_ref.printStackTrace();
+			    } //endtry
+			} //endif
+		} //endif
+	} //endmethod createTray
+	
+	/**
+	 *	Erneuert die <i>seleBox_ref</i>, welche alle Hosteintrage fasst mit den
+	 *	Werten aus der <i>settings_ref</i>-Matrix.
+	 *
+	 *	@param needsRepaint Entscheidet, ob die <i>seleBox_ref</i> neu gezeichnet werden muss.
+	 */
+	private void refreshHostList(boolean needsRepaint) {
+		if (needsRepaint){
+			seleBox_ref.removeAll();
+			seleBox_ref.revalidate();
+			seleBox_ref.repaint();
+		} else {
+			seleBox_ref = new Box(BoxLayout.Y_AXIS);
+		} //endif
+		mainHosts_ref = new Object[settings_ref[0].length][2];
+		for (int i=0; i<mainHosts_ref.length; i++) {
+			mainHosts_ref[i][0] = new JLabel(settings_ref[0][i][0]);
+			mainHosts_ref[i][1] = new JCheckBox();
+			((JCheckBox)mainHosts_ref[i][1]).setSelected(true);
+		} //endfor
+		int count = mainHosts_ref.length / 4;
+		double cOne = ((double)mainHosts_ref.length) / 4.0;
+		cOne = cOne - (int)cOne;
+		if (cOne > 0.0) {
+			count++;
+		} //endif
+		
+		int co = 0;
+		for (int i=0; i<count; i++) {
+			Box lineBox_ref = new Box(BoxLayout.X_AXIS);
+			int exEl = 0;
+			if ((settings_ref[0].length % 4) > 0) {
+				exEl = settings_ref[0].length % 4;
+			} //endif
+			
+			if ((exEl > 0) && (i != (count-1))) {
+				for (int j=0; j<4; j++) {
+					lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
+					lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
+					
+					if (j != 3) {
+						lineBox_ref.add(new JLabel("  |  "));
+					} //endif
+					co++;
+				} //endfor
+			} else if ((exEl > 0) && (i == (count-1))) {
+				for (int j=0; j<exEl; j++) {
+					lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
+					lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
+					
+					if (j != (exEl -1)) {
+						lineBox_ref.add(new JLabel("  |  "));
+					} //endif
+					co++;
+				} //endfor
+			} else if (exEl == 0) {
+				for (int j=0; j<4; j++) {
+					if (co < mainHosts_ref.length) {
+						lineBox_ref.add((JLabel)mainHosts_ref[co][0]);
+						lineBox_ref.add((JCheckBox)mainHosts_ref[co][1]);
+						
+						if (j != 3) {
+							lineBox_ref.add(new JLabel("  |  "));
+						} //endif
+					} //endif
+					co++;
+				} //endfor
+			} //endif
+			seleBox_ref.add(lineBox_ref);
+		} //endfor
+		if (needsRepaint) {
+			seleBox_ref.revalidate();
+			seleBox_ref.repaint();
+		} //endif
+	} //endmethod refreshHostList
+	
+	/**
 	 *	<p>Versucht dem GUI ein natives Look&Feel zu verleihen. Hierzu macht es gebrauch von der statischen
 	 *	Methode <i>setNativeLookAndFeel()</i> der Klasse <i>LookAndFeelHelfer</i>.</p> <p>Gelingt dies nicht, wird 
 	 *	die ebenfalls statische Methode <i>setJavaLookAndFeel()</i> dieser Klasse aufgerufen und das GUI 
@@ -417,15 +543,37 @@ class TinyAdminGUI {
 	} //endmethod tryNativeLook
 	
 	/**
+	 *	Erneuert das Untermenue fuer benutzereigene Kommandos des TracIcons
+	 *	mit den neuen Werten aus der Einstellungs-Matrix <i>settings_ref</i>.
+	 */
+	private void refreshTrayCommandList() {
+		customMen_ref.removeAll();
+		String[] commands_ref = new String[settings_ref[1].length];
+		for (int i=0; i<commands_ref.length; i++) {
+			commands_ref[i] = settings_ref[1][i][0];
+		} //endfor
+		
+		for (int i=0; i<commands_ref.length; i++) {
+			MenuItem menIt_ref = new MenuItem(commands_ref[i]);
+			menIt_ref.addActionListener(new TrayCustomListener());
+			customMen_ref.add(menIt_ref);
+		} //endfor
+		
+		cstmAsRoot_ref = new CheckboxMenuItem("als root?");
+	    customMen_ref.addSeparator();
+	    customMen_ref.add(cstmAsRoot_ref);
+	} //endmethod refreshTrayCommandList
+	
+	/**
 	 *	Erzeugt ein <i>JButton[]</i>-Array, welches die im unteren GUI enthaltenen Aktions-Knoepfe
 	 *	enthaelt. Die Knoepfe werden hier generiert, um das Programm so leichter erweiterbar zu machen.
 	 *	Jeder Knopf erhaelt einen <i>Namen</i>, ein <i>Icon</i> und einen <i>Tooltip</i>. 
+	 *	Die Namen der Buttons werden in der Klasse selbst, in der finalen Variablen <i>BNAMES</i> gehalten.
 	 * 
 	 * @return Array mit den Aktionsknoepfen fuer das untere Haupt-GUI.
 	 */
 	private JButton[] createActionButtons() {
-		String[] names_ref = {"Update", "Reboot", "Shutdown", "Custom", "Test", "Ping", "WOL"};
-		String[] icons_ref = {"updateIcon.png", "rebootIcon.png", "shutdownIcon.png", "customIcon.png",
+		String[] bicons_ref = {"updateIcon.png", "rebootIcon.png", "shutdownIcon.png", "customIcon.png",
 								"testIcon.png", "pingIcon.png", "wolIcon.png"};
 		String[] tooltips_ref = {"<html>Führt ein Software-Update für alle ausgewählten<br>Hosts durch.</html>",
 								"Führt einen Neustart aller ausgewählten Hosts durch.",
@@ -435,10 +583,10 @@ class TinyAdminGUI {
 								"Pingt alle ausgewählten Hosts an.",
 								"<html>Wake-On-LAN: Versendet ein Magic-Packet,<br>um die ausgewählten Hosts zu starten/aufzuwecken.</html>"};
 		
-		JButton[] buttonArray_ref = new JButton[names_ref.length];
+		JButton[] buttonArray_ref = new JButton[BNAMES.length];
 		for (int i=0; i<buttonArray_ref.length; i++) {
-			ImageIcon icon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/"+icons_ref[i]));
-			buttonArray_ref[i] = new JButton(names_ref[i], icon_ref);
+			ImageIcon icon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/"+bicons_ref[i]));
+			buttonArray_ref[i] = new JButton(BNAMES[i], icon_ref);
 			buttonArray_ref[i].setToolTipText(tooltips_ref[i]);
 			buttonArray_ref[i].addActionListener(new ButtonListener());
 		} //endfor
@@ -447,8 +595,23 @@ class TinyAdminGUI {
 	} //endmethod createActionButtons
 	
 	/**
-	 *	Setzt die Hosteinstellungen auf die uebergebene Matrix, speichert diese mit dem <i>IOHelfer</i>-Objekt
-	 *	und ueberprueft mit Hilfe der Methode <i>validateSettings()</i>, ob das GUI auf Grund einer 
+	 *	Erzeugt eine neue Instanz eines <i>AddHostGUI</i> und uebergibt ihr die gewuenschte Position
+	 *	in der Einstellungs-Matrix. Zuvor werden moegliche, bereits vorhandene, Instanzen mit
+	 *	der <i>closeWindows()</i>-Methode geschlossen.
+	 *
+	 *	@param pos Gewuenschte Position in der Einstellungs-Matrix.
+	 *	@see AddHostGUI
+	 *	@see #closeOpenWindows(int num)
+	 */
+	void createAddHost(int pos) {
+		closeOpenWindows(1);
+		addHostGui_ref = new AddHostGUI(pos, tAShell_ref.getGUI());
+	    addHostGui_ref.drawGUI();
+	} //endmethod createAddHost
+	
+	/**
+	 *	Setzt die Einstellungen auf die uebergebene Matrix, speichert diese mit dem <i>IOHelfer</i>-Objekt
+	 *	und ueberprueft mit Hilfe der Methode <i>validateSettings()</i>, ob die <i>seleBox_ref</i> auf Grund einer 
 	 *	Veraenderung der Hostanzahl neu gezeichnet werden muss.
 	 *	
 	 *	@param settings_ref Die zu initialisierenden Settings.
@@ -462,15 +625,18 @@ class TinyAdminGUI {
 	} //endmethod initializeSettings
 	
 	/**
-	 *	Ueberprueft ob das GUI auf Grund einer Veraenderung der Anzahl der Hosts neu gezeichnet werden muss
-	 *	und tut dies bei Bedarf. Falls es keine Veraenderung der Anzahl gab, aber die Namen der Hosts oder
-	 *	Benutzer-eigenen Befehle dennoch geaendert werden muessen, geschieht dies ohne das GUI neu zu zeichnen.
+	 *	<p>Aktuallisiert das GUI mit den neuen Werten aus der Einstellungs-Matrix <i>settings_ref</i>. 
+	 *	Diese Methode veranlasst alle noetigen Aenderungen am GUI, falls sich die Matrix geaendert hat.</p>
+	 *	<p>Die <i>seleBox_ref</i> kann mit der Methode <i>refreshHostList()</i> neu gezeichnet werden, 
+	 *	das TrayIcon wird mit der Methode <i>refreshTrayCommandList()</i> aktuallisiert.</p>
+	 *
+	 *	@see #refreshHostList(boolean)
+	 *	@see #refreshTrayCommandList()
 	 */
 	private void validateSettings() {
 		if (mainHosts_ref.length != settings_ref[0].length) {
-			mainFrame_ref.dispose();
-			drawGUI();
-		} else {
+			refreshHostList(true);
+		} //endif
 			eCBox_ref.removeAllItems();
 			for (int i=0; i<settings_ref[0].length; i++) {
 				eCBox_ref.addItem(settings_ref[0][i][0]);
@@ -480,12 +646,15 @@ class TinyAdminGUI {
 					((JLabel)mainHosts_ref[i][0]).setText(settings_ref[0][i][0]);
 				} //endfor
 			} //endfor
-		} //endif
 	
 		ccCombo_ref.removeAllItems();
 		for (int i=0; i<settings_ref[1].length; i++) {
 			ccCombo_ref.addItem(settings_ref[1][i][0]);
 		} //endfor
+		
+		if (customMen_ref != null) {
+			refreshTrayCommandList();
+		} //endif
 	} //endmethod validateSettings
 	
 	/**
@@ -537,28 +706,50 @@ class TinyAdminGUI {
 	void initWaitCursor(int onOff) {
 		if (onOff == 1) {
 			mainFrame_ref.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			closeOpenWindows();
+			closeOpenWindows(2);
 		} else if (onOff == 0) {
 			mainFrame_ref.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		} //endif
 	} //endmethod initWaitCursor
 	
 	/**
-	 * 	Zeigt eine Fehlermeldung im Haupt-GUI mit Hilfe der <i>JOptionPane</i> an.
+	 * 	Zeigt Fehlermeldungen in Abhaengigkeit der Sichtbarkeit des GUIs an.
+	 * <ul>
+	 * 		<li>Ist das Haupt-GUI sichtbar, werden die Meldungen mit Hilfe der
+	 * 		<i>JOptionPane</i> angezeigt.</li>
+	 * 		<li>Ist das Haupt-GUI nicht sichtbar, werden die Meldungen ueber
+	 * 		das TrayIcon ausgegeben.</li>
+	 * </ul>
 	 * 
 	 * 	@param message_ref Die Fehlermeldung, welche angezeigt werden soll.
 	 */
 	void displayError(String message_ref) {
-		JOptionPane.showMessageDialog(mainFrame_ref, message_ref, "Fehler", JOptionPane.ERROR_MESSAGE);
+		if (customMen_ref != null && !mainFrame_ref.isVisible()) {
+			String info_ref = "FEHLER: Die Verarbeitung für ein oder mehrere Hosts schlug fehl.";
+			trayIcon_ref.displayMessage("Fehler", info_ref, TrayIcon.MessageType.ERROR);
+		} else {
+			JOptionPane.showMessageDialog(mainFrame_ref, message_ref, "Fehler", JOptionPane.ERROR_MESSAGE);
+		} //endif
 	} //endmethod displayError
 	
 	/**
-	 * 	Zeigt eine Informationsnachricht im Haupt-GUI mit Hilfe der <i>JOptionPane</i> an.
+	 * 	Zeigt eine Informationsnachricht in Abhaengigkeit der Sichtbarkeit des GUIs an.
+	 * 	<ul>
+	 * 		<li>Ist das Haupt-GUI sichtbar, werden die Meldungen mit Hilfe der
+	 * 		<i>JOptionPane</i> angezeigt.</li>
+	 * 		<li>Ist das Haupt-GUI nicht sichtbar, werden die Meldungen ueber
+	 * 		das TrayIcon ausgegeben.</li>
+	 * </ul>
 	 * 
 	 * 	@param message_ref Die Meldung, welche angezeigt werden soll.
 	 */
 	void displayMsg(String message_ref) {
-		JOptionPane.showMessageDialog(mainFrame_ref, message_ref, "Hinweis", JOptionPane.INFORMATION_MESSAGE);
+		if (customMen_ref != null && !mainFrame_ref.isVisible()) {
+			String info_ref = "HINWEIS: Die Verarbeitung war erfolgreich.";
+			trayIcon_ref.displayMessage("Hinweis", info_ref, TrayIcon.MessageType.INFO);
+		} else {
+			JOptionPane.showMessageDialog(mainFrame_ref, message_ref, "Hinweis", JOptionPane.INFORMATION_MESSAGE);
+		} //endif
 	} //endmethod displayMsg
 	
 	/**
@@ -575,7 +766,7 @@ class TinyAdminGUI {
 			} //endif
 		} //endfor
 		
-		String[][] action_ref = new String[amount][7];
+		String[][] action_ref = new String[amount][9];
 		int pos = 0;
 		for (int i=0; i<mainHosts_ref.length; i++) {
 			if (((JCheckBox)mainHosts_ref[i][1]).isSelected()) {
@@ -586,6 +777,8 @@ class TinyAdminGUI {
 				action_ref[pos][4] = settings_ref[0][i][4];
 				action_ref[pos][5] = settings_ref[0][i][5];
 				action_ref[pos][6] = settings_ref[0][i][6];
+				action_ref[pos][7] = settings_ref[0][i][7];
+				action_ref[pos][8] = settings_ref[0][i][8];
 				pos++;
 			} //endif
 		} //enfor
@@ -601,6 +794,15 @@ class TinyAdminGUI {
 	String[][][] getSettings() {
 		return settings_ref;
 	} //endmethod getSettings
+	
+	/**
+	 *	Liefert eine Referenz auf das Einstellungs-GUI zurueck.
+	 *
+	 *	@return Referenz auf das Einstellungs-GUI.
+	 */
+	TinyAdminSettingsGUI getSettingsGUI() {
+		return settingsGUI_ref;
+	} //endmethod getSettingsGUI
 	
 	/**
 	 *	Liefert den zuletzt ausgefuehrten, Benutzer-eigenen Befehl zurueck.
@@ -678,7 +880,7 @@ class TinyAdminGUI {
 	 */
 	private void setStandardText() {
 		statusField_ref.setText("Bitte wählen Sie die Hosts aus, mit denen Sie arbeiten möchten.\n" +
-				"Natürlich müssen Sie vorher die Verbindungs-Parameter über das Einstellungs-Menü festlegen: " +
+				"Natürlich müssen Sie diese vorher hinzufügen: " +
 				"Einer der Aktions-Buttons unten startet den Vorgang und " +
 				"wenn Sie möchten, können Sie vorher noch die Anzahl der parallelen Prozesse festlegen.\n\n" + 
 				"EIGENE BEFEHLE:\n\n" +
@@ -738,14 +940,29 @@ class TinyAdminGUI {
 	} //endmethod setButtonStatus
 	
 	/**
-	 *	Ueberprueft ob das Einstellungs-Menue geoeffnet ist und schliesst es bei Bedarf.
+	 *	<p>Ueberprueft ob das Einstellungs- oder AddHost-GUI geoeffnet ist und schliesst es bei Bedarf.
+	 *	Mit Hilfe der <i>getFrame()</i>-Methode der jeweiligen GUI-Fenster, kann eine Referenz
+	 *	auf deren JFrame bezogen werden: So wird ueberprueft, ob die Fenster aktiviert sind.</p>
+	 *	
+	 *	@param num Legt fest, welche Fenster geschlossen werden sollen. (0=Einstellungen, 1=AddHost, 2=Beide)
 	 */
-	void closeOpenWindows() {
-		if (settingsGUI_ref != null) {
-			if (settingsGUI_ref.getFrame() != null) {
-				settingsGUI_ref.getFrame().dispose();
+	void closeOpenWindows(int num) {
+		if (num==0 || num==2) {
+			if (settingsGUI_ref != null) {
+				if (settingsGUI_ref.getFrame() != null) {
+					settingsGUI_ref.getFrame().dispose();
+				} //endif
+				settingsGUI_ref = null;
 			} //endif
-			settingsGUI_ref = null;
+		} //endif
+		
+		if (num==1 || num==2) {
+			if (addHostGui_ref != null) {
+				if (addHostGui_ref.getFrame() != null) {
+					addHostGui_ref.getFrame().dispose();
+				} //endif
+				addHostGui_ref = null;
+			} //endif
 		} //endif
 	} //endmethod closeOpenWindows
 	
@@ -753,7 +970,100 @@ class TinyAdminGUI {
 	
 	// --- Listener
 	/**
-	 *	Listener fuer die Menubar des Haupt-GUIs.
+	 *	<p>Listener fuer das Untermenue benutzereigener Befehle des TrayIcons.
+	 *	Bei einem klick auf einen Befehl wird dieser aus der Einstellungs-Matrix
+	 *	herausgesucht und an die <i>performCustomAction()</i> der Hauptanwendung
+	 *	zusammen mit allen noetigen Parametern uebergeben.</p>
+	 *	<p>Hat der Benutzer jedoch keine Hosts im Haupt-GUI ausgewaehlt, wird eine
+	 *	entsprechende Statusmeldung mit der Methode <i>displayError()</i> generiert.<p>
+	 *
+	 *	@see TinyAdminC#performCustomAction(String[], boolean, String[][], int)
+	 *
+	 * 	@version 0.3 von 06.2011
+	 *
+	 * 	@author Tobias Burkard
+	 */
+	private class TrayCustomListener implements ActionListener {
+		public void actionPerformed(ActionEvent ev_ref) {
+			for (int i=0; i<settings_ref[1].length; i++) {
+				if (settings_ref[1][i][0].equals(ev_ref.getActionCommand())) {
+					if (mainHosts_ref.length > 0) {
+						lastCmd_ref = ev_ref.getActionCommand();
+						statusField_ref.setText("Führe eigenes Kommando \"" + lastCmd_ref + "\" für alle ausgewählten Hosts durch.\n");
+						tAShell_ref.performCustomAction(settings_ref[1][i], cstmAsRoot_ref.getState(), getActionData(), (psCBox_ref.getSelectedIndex()+1));
+					} else {
+						displayError("Sie haben keine Hosts angegeben,\nbitte holen Sie dies in den Einstellungen nach.");
+					} //endif
+				} //endif
+			} //endfor
+		} //endmethod actionPerformed
+	} //endclass TrayCustomListener
+	
+	/**
+	 *	Listener fuer das TrayIcon: macht das HauptGUI nach dem minimieren wieder sichtbar,
+	 *	falls der Benutzer doppelt auf das TrayIcon klickt.
+	 *
+	 * 	@version 0.3 von 06.2011
+	 * 
+	 * 	@author Tobias Burkard
+	 */
+	private class TrayListener implements MouseListener {
+		public void mouseClicked(MouseEvent ev_ref) {
+			if (ev_ref.getClickCount() == 2) {
+	            mainFrame_ref.setVisible(true);
+	            mainFrame_ref.toFront();
+			} //endif
+        } //endmethod mouseClicked
+		
+		public void mouseEntered(MouseEvent ev_ref) {                 
+	    } //endmethod mouseEntered
+		
+		public void mouseExited(MouseEvent ev_ref) {      
+        } //endmethod mouseExited
+
+        public void mousePressed(MouseEvent ev_ref) {                
+        } //endmethod mousePressed
+
+        public void mouseReleased(MouseEvent ev_ref) {                 
+        }//endmethod mouseReleased
+	} //endclass TrayListener
+	
+	/**
+	 *	Listener fuer das Hauptfenster (den JFrame): ueberschreibt
+	 *	die Methode, welche bei einem Klick auf den Minimieren-Fensterbutton
+	 *	ausgeloest wird. So wird die Anwendung "in den Tray minimiert".
+	 *
+	 *	@version 0.3 von 06.2011
+	 *
+	 * 	@author tobi
+	 */
+	private class FrameListener implements WindowListener {
+		public void windowActivated(WindowEvent ev_ref) {
+        } //endmethod windowActivated
+		
+        public void windowClosed(WindowEvent ev_ref) {
+        } //endmethod windowClosed
+        
+        public void windowClosing(WindowEvent ev_ref) {
+        } //endmethod windowClosing
+        
+        public void windowDeactivated(WindowEvent ev_ref) {
+        } //endmethod windowDeactivated
+        
+        public void windowDeiconified(WindowEvent ev_ref) {
+        } //endmethod windowDeiconified
+        
+        public void windowIconified(WindowEvent ev_ref) {
+        	mainFrame_ref.setVisible(false);
+        	closeOpenWindows(2);
+        } //endmethod windowIconified
+        
+        public void windowOpened(WindowEvent ev_ref) {
+        } //endmethod windowOpened
+	} //endclass FrameListener
+	
+	/**
+	 *	Listener fuer die Menubar des Haupt-GUIs, sowie bedingt fuer Elemente des Trays.
 	 *	Moegliche Aktionen:
 	 *	<ul>
 	 *		<li>Beenden<ul>
@@ -772,7 +1082,7 @@ class TinyAdminGUI {
 	 *		</li>
 	 *	</ul>
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
@@ -782,7 +1092,7 @@ class TinyAdminGUI {
 				System.exit(0);
 			} else if (ev_ref.getActionCommand().equals("Über")) {
 				ImageIcon infoIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/appIcon.png"));
-				JOptionPane.showMessageDialog(mainFrame_ref, "TinyAdmin v0.2\n\n(c) Tobias Burkard 2011\n\n" + 
+				JOptionPane.showMessageDialog(mainFrame_ref, "TinyAdmin v0.3\n\n(c) Tobias Burkard 2011\n\n" + 
 											"Paralleles Administrieren von UN*X (-ähnlichen) Systemen über das Netzwerk.\n\n" +
 											"Diese Software steht unter der GPLv2-Lizenz und kommt OHNE JEGLICHE GEWÄHRLEISTUNG,\n" +
 											"darf jedoch frei unter den Bedingungen dieser Lizenz vertrieben werden. Sie sollten eine\n" +
@@ -799,40 +1109,44 @@ class TinyAdminGUI {
 				psCBox_ref.setSelectedIndex(2);
 				ccCombo_ref.setSelectedIndex(0);
 			} else if (ev_ref.getActionCommand().equals("Einstellungen")) {
+				closeOpenWindows(0);
 				settingsGUI_ref = new TinyAdminSettingsGUI(tAShell_ref.getGUI());
 			} //endif
 		} //endmethod actionPerformed
 	} //endclass MenuListener
 	
 	/**
-	 *	Listener fuer alle Knoepfe des Haupt-GUIs.
-	 *	Moegliche Aktionen:
+	 *	</p>Listener fuer alle Knoepfe des Haupt-GUIs, sowie fuer das Kommando-Untermenue des Tray-Icons.</p>
+	 *	<p>Moegliche Aktionen:
 	 *	<ul>
-	 *		<li>Verlassen<ul>
+	 *		<li>Verlassen:<ul>
 	 *				<li>Beendet das Programm.</li></ul>
 	 *		</li>
-	 *		<li>Abbrechen<ul>
+	 *		<li>Abbrechen:<ul>
 	 *				<li>Beendet alle laufenden Aktionen.</li></ul>
 	 *		</li>
-	 *		<li>alle<ul>
+	 *		<li>alle (Alle auswaehlen):<ul>
 	 *				<li>Ruft die <i>selectAll()</i>-Methode auf.</li></ul>
 	 *		</li>
-	 *		<li>delTa (Status-TextFeld loeschen)<ul>
+	 *		<li>delTa (Status-TextFeld loeschen):<ul>
 	 *				<li>ruft die <i>setStandardText()</i>-Methode auf.</li></ul>
 	 *		</li>
-	 *		<li>jump (Springe zu)<ul>
+	 *		<li>neu (neuer Hosteintrag):<ul>
+	 *				<li>ruft die Methode <i>createAddHost()</i> auf um ein neues AddHostGUI zu erzeugen.</li></ul>
+	 *		</li>
+	 *		<li>jump (Springe zu):<ul>
 	 *				<li>Springt zum in der SelectionBox ausgewaehlten Hosteintrag.</li></ul>
 	 *		</li>
-	 *		<li>Update, Reboot, Shutdown, Test, Ping, WOL, Custom<ul>
+	 *		<li>Update, Reboot, Shutdown, Test, Ping, WOL, Custom:<ul>
 	 *				<li>Fuehrt die entsprechende Aktion aus. Bei Custom wird ein neues <i>CustomCMDHelfer</i>-
 	 *				Objekt erzeugt, welches den Befehl vom Benutzer abfragt.</li></ul>
 	 *		</li>
-	 *		<li>Ausfuehren<ul>
+	 *		<li>Ausfuehren:<ul>
 	 *			<li>Fuehrt das selektierte, Benutzer-eigene Kommando aus.</li></ul>
 	 *		</li>
-	 *	</ul>
+	 *	</ul></p>
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
@@ -846,6 +1160,8 @@ class TinyAdminGUI {
 				selectAll();
 			} else if (ev_ref.getActionCommand().equals("delTA")) {
 				setStandardText();
+			} else if (ev_ref.getActionCommand().equals("neu")) {
+				createAddHost(-1);
 			} else if (ev_ref.getActionCommand().equals("jump")) {
 				Pattern pattern_ref = Pattern.compile("--- FÜHRE.*" + (settings_ref[0][eCBox_ref.getSelectedIndex()][0]));
 			    Matcher matcher_ref = pattern_ref.matcher(statusField_ref.getText());

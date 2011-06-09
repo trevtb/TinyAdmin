@@ -63,12 +63,12 @@ import javax.crypto.spec.PBEParameterSpec;
 /**	
 *	<p>Helfer-Klasse fuer die Kryptographie. 
 *	Wird zum Ent- bzw. Verschluesseln von Strings genutzt. Das Passwort wird bei der
-*	Erstellung eines Objektes dieser Klasse uebergeben.</p> <p>Das Salt, welches mit dem 
-*	Passwort gemixt wird und sozusagen als zweiter Schluessel dient, ist bereits fest
-*	in diese Klasse integriert.</p>
+*	Erstellung eines Objektes dieser Klasse uebergeben.</p> 
+*	<p>Das Salt, welches mit dem Passwort gemixt wird und sozusagen als zweiter Schluessel 
+*	dient, ist bereits fest in diese Klasse integriert.</p>
 *	<p>Als Verschluesselungsmethode dient <i>PBE</i> mit <i>MD5</i> und <i>DES</i>.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */

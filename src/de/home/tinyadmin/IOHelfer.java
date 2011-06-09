@@ -69,7 +69,7 @@ import java.io.ObjectOutputStream;
 *
 *	@see KryptoHelfer
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -78,8 +78,7 @@ class IOHelfer {
 	private TinyAdminC main_ref;	// Referenz auf das Hauptprogramm
 	private final String DATA_FILE = "tinyadmin.data";	// Dateiname der Datei, in welcher die Einstellungen
 														// gespeichert werden
-    private final String KLO = "AA3F40126067DD3B9313B5424C5716" + 
-    							"CF89DDB35EDE85BE682582A11BCDD2935F";	// Schluessel fuer die Kryptographie
+    private final String KLO = "";	// Schluessel fuer die Kryptographie
     
     // --- Konstruktoren
     /**
@@ -120,7 +119,7 @@ class IOHelfer {
 			return decryptedSettings_ref;
 		} //endcatch
 		
-		if (decryptedSettings_ref[0][0].length != 7 || decryptedSettings_ref[0] == null || decryptedSettings_ref[1] == null) {
+		if (decryptedSettings_ref[0][0].length != 9 || decryptedSettings_ref[0] == null || decryptedSettings_ref[1] == null) {
 			makeNewSettings();
 			decryptedSettings_ref = readSettings();
 			return decryptedSettings_ref;
@@ -128,8 +127,8 @@ class IOHelfer {
 		for (int i=0; i<decryptedSettings_ref[0].length; i++) {
 			try {
 				KryptoHelfer encrypter_ref = new KryptoHelfer(KLO);
-				decryptedSettings_ref[0][i][3] = encrypter_ref.decrypt(decryptedSettings_ref[0][i][3]);
 				decryptedSettings_ref[0][i][4] = encrypter_ref.decrypt(decryptedSettings_ref[0][i][4]);
+				decryptedSettings_ref[0][i][5] = encrypter_ref.decrypt(decryptedSettings_ref[0][i][5]);
 			} catch (Exception ex_ref) {
 				ex_ref.printStackTrace();
 			} //endtry
@@ -163,8 +162,8 @@ class IOHelfer {
 		for (int i=0; i<toSave_ref[0].length; i++) {
 			try {
 			    KryptoHelfer encrypter_ref = new KryptoHelfer(KLO);
-			    toSave_ref[0][i][3] = encrypter_ref.encrypt(toSave_ref[0][i][3]);
 			    toSave_ref[0][i][4] = encrypter_ref.encrypt(toSave_ref[0][i][4]);
+			    toSave_ref[0][i][5] = encrypter_ref.encrypt(toSave_ref[0][i][5]);
 			} catch (Exception ex_ref) {
 				ex_ref.printStackTrace();
 			} //endtry
@@ -183,17 +182,19 @@ class IOHelfer {
 	/**
 	 *	<p>Erzeugt eine neue Einstellungs-Matrix mit einem Standardeintrag.</p>
 	 *	<p>Der Standardeintrag fuer die Hosteinstellungen hat folgenden Inhalt:<ul>
-	 *		<li>Hostname="Host 1"</li>
+	 *		<li>Hostname="Host #1"</li>
 	 *		<li>IPAdresse="0.0.0.0"</li>
+	 *		<li>Port="22"</li>
 	 *		<li>Benutzername="root"</li> 
 	 *		<li>Passwort=""</li>
 	 *		<li>Sudo-Passwort=""</li>
+	 *		<li>Keyfile="-----"</li>
 	 *		<li>MAC-Adresse="00:00:00:00:00:00"</li>
 	 *		<li>OS="Debian"</li></ul>
 	 *	</p>
 	 *	<p>Der Standardeintrag fuer die vom Benutzer selbst erstellbaren Kommandos hat folgenden Inhalt:<ul>
-	 *	<li>Name="Neues Kommando #1"</li>
-	 *	<li>alle restlichen Felder (fuer jedes Betriebssystem eines), werden mit <i>""</i> aufgefuellt, bleiben
+	 *	<li>Name="Kommando #1"</li>
+	 *	<li>Alle restlichen Felder (fuer jedes Betriebssystem eines), werden mit <i>""</i> aufgefuellt, bleiben
 	 *	also leer.</li></ul>
 	 *	</p>
 	 *	<p>Die Matrix ist dreidimensional und besteht aus diesen beiden, 2-dimensionalen Untermatrizen: hat also
@@ -206,14 +207,16 @@ class IOHelfer {
 	private void makeNewSettings() {
 		String[][][] settings_ref = new String[2][][];
 		
-		String[][] hostSettings_ref = new String[1][7];
-		hostSettings_ref[0][0] = "Host 1";
+		String[][] hostSettings_ref = new String[1][9];
+		hostSettings_ref[0][0] = "Host #1";
 		hostSettings_ref[0][1] = "0.0.0.0";
-		hostSettings_ref[0][2] = "root";
-		hostSettings_ref[0][3] = "";
+		hostSettings_ref[0][2] = "22";
+		hostSettings_ref[0][3] = "root";
 		hostSettings_ref[0][4] = "";
-		hostSettings_ref[0][5] = "00:00:00:00:00:00";
-		hostSettings_ref[0][6] = "Debian";
+		hostSettings_ref[0][5] = "";
+		hostSettings_ref[0][6] = "-----";
+		hostSettings_ref[0][7] = "00:00:00:00:00:00";
+		hostSettings_ref[0][8] = "Debian";
 		
 		settings_ref[0] = hostSettings_ref;
 		
@@ -221,7 +224,7 @@ class IOHelfer {
 		for (int i=0; i<commandSettings_ref[0].length; i++) {
 			commandSettings_ref[0][i] = "";
 		} //endfor
-		commandSettings_ref[0][0] = "Neues Kommando #1";
+		commandSettings_ref[0][0] = "Kommando #1";
 		settings_ref[1] = commandSettings_ref;
 		
 		writeSettings(settings_ref);

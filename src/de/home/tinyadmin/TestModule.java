@@ -59,7 +59,7 @@ import java.net.InetAddress;
 *	<p>Diese Klasse implementiert in der <i>doAction()</i>-Methode konkret den Code fuer den Test
 *	des Hosts und es wird auch eine entsprechende Statusmeldung generiert.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -102,4 +102,5 @@ class TestModule extends ActionModule {
 		
         return retVal_ref;
 	} //endmethod doAction
+	
 } //endclass TestModule

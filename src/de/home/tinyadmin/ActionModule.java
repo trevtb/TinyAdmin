@@ -61,7 +61,7 @@ package de.home.tinyadmin;
 *	@see MessageFacility
 *	@see TestHelfer
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */

@@ -57,7 +57,7 @@ import javax.swing.UIManager;
 *	Helfer-Klasse fuer das setzen des Look&Feels aller GUI-Klassen. Stellt Werkzeuge
 *	zum setzen eines nativen- oder Java-Look&Feels bereit.
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */

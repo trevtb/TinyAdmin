@@ -1,6 +1,7 @@
 package de.home.tinyadmin;
 
 // --- Importe
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -12,10 +13,12 @@ import java.awt.event.ItemListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -78,20 +81,17 @@ import javax.swing.table.DefaultTableModel;
  *	<p>Stellt das Kommando-Einstellungs-Tab des Einstellungs-GUIs bereit.
  *	Hier kann der Benutzer eigene Kommandos erstellen und deren, fuer jedes Betriebssystem
  *	individuellen Befehle; editieren, reseten und speichern.</p>
- *	<p>Das Objekt selbst ist ein SettingsTab, welches wiederum von einem JPanel erbt 
- *	und mit einer Referenz auf das EinstellungsGUI <i>TinyAdminSettingsGUI</i>
- *	erzeugt wird. Ab da baut sich (das JPanel) dann selbststaendig durch Aufruf
+ *	<p>Das Objekt selbst erbt von einem JPanel und wird mit einer Referenz auf das EinstellungsGUI 
+ *	<i>TinyAdminSettingsGUI</i> erzeugt. Ab da baut sich (das JPanel) dann selbststaendig durch Aufruf
  *	der <i>drawTab()</i>-Methode zusammen, aufgerufen durch den Konstruktor.</p>
  *	<p>Diese Klasse enthaelt alle fuer dieses Tab noetigen Listener und GUI-Komponenten, 
  *	sowie Methoden.</p>
  *
- *	@see SettingsTab
- *
- * 	@version 0.2 von 06.2011
+ * 	@version 0.3 von 06.2011
  *
  * 	@author Tobias Burkard
  */
-class SettingsTabKommandos extends SettingsTab {
+class SettingsTabKommandos extends JPanel {
 	// --- Attribute
 	private TinyAdminSettingsGUI setGui_ref;	// Referenz auf das Einstellungs-GUI
 	private JTable custTable_ref;	// Fasst die Kommandos der einzelnen Betriebssysteme fuer den momentan selektierten Eintrag
@@ -120,7 +120,7 @@ class SettingsTabKommandos extends SettingsTab {
 	
 	// --- Methoden
 	/**
-	 *	<p>Diese Methode baut das JPanel (also das Objekt selbst, da es ueber seine Superklasse von JPanel erbt)
+	 *	<p>Diese Methode baut das JPanel (also das Objekt selbst, da es von JPanel erbt)
 	 *	zusammen und fuellt es mit Werten. Dieses fasst die bereits vom Benutzer gespeicherten, eigenen Kommandos 
 	 *	und erlaubt das Erstellen neuer oder Loeschen alter.</p>
 	 *	<p>Es existiert nur ein einziger Listener fuer Buttons, der <i>SettingsCommandButtonListener</i>. 
@@ -129,7 +129,6 @@ class SettingsTabKommandos extends SettingsTab {
 	 *	veraendert werden darf, einen eigenen Renderer <i>CustomTableRenderer</i>. Zudem bekommt die gesamte
 	 *	Tabelle ein eigenes DefaultTableModel <i>CustomTableModel</i>.</p>
 	 *
-	 *	@see SettingsTab
 	 *	@see SettingsCommandButtonListener
 	 *	@see ComboBoxListener
 	 *	@see CustomTableRenderer
@@ -162,8 +161,8 @@ class SettingsTabKommandos extends SettingsTab {
 		Box comSelBoxSub1_ref = new Box(BoxLayout.X_AXIS);
 		comSelBoxSub1_ref.add(new JLabel("Kommandos:"));
 		cComBox_ref = new JComboBox();
-		for (int i=0; i<(setGui_ref.getSettings())[1].length; i++) {
-			cComBox_ref.addItem((setGui_ref.getSettings())[1][i][0]);
+		for (int i=0; i<(setGui_ref.getGUI().getSettings())[1].length; i++) {
+			cComBox_ref.addItem((setGui_ref.getGUI().getSettings())[1][i][0]);
 		} //endfor
 		cComBox_ref.addItemListener(new ComboBoxListener());
 		cComBox_ref.setPreferredSize(new Dimension(100,30));
@@ -212,7 +211,7 @@ class SettingsTabKommandos extends SettingsTab {
 		custTableScroller_ref.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		custTableMod_ref = new CustomTableModel(getSelTabMatrix(), new String[]{"OS", "Kommando"});
 		custTable_ref.setModel(custTableMod_ref);
-		custTable_ref.setDefaultEditor(new Object().getClass(), new TATableEditor());
+		custTable_ref.setDefaultEditor(new Object().getClass(), new TableEditor());
 		refreshCustomTableRenderers();
 		custTableBox_ref.add(custTableScroller_ref);
 		custTableBox_ref.add(Box.createHorizontalStrut(10));
@@ -220,7 +219,7 @@ class SettingsTabKommandos extends SettingsTab {
 		Box selItemBoxButtons_ref = new Box(BoxLayout.Y_AXIS);
 		ImageIcon custSaveIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/saveIcon.png"));
 		ImageIcon custResetIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/resetIcon.png"));
-		JButton custSaveButton_ref = new JButton("Übernehmen", custSaveIcon_ref);
+		JButton custSaveButton_ref = new JButton("Speichern", custSaveIcon_ref);
 		custSaveButton_ref.setToolTipText("Speichert die Veränderungen am ausgewählten Kommando.");
 		custSaveButton_ref.addActionListener(new SettingsCommandButtonListener());
 		JButton custResetButton_ref = new JButton("Reset", custResetIcon_ref);
@@ -231,16 +230,7 @@ class SettingsTabKommandos extends SettingsTab {
 		selItemBoxButtons_ref.add(Box.createVerticalStrut(20));
 		custTableBox_ref.add(selItemBoxButtons_ref);
 		
-		Box saveInfoBox_ref = new Box(BoxLayout.X_AXIS);
-		JLabel saveInfoLab_ref = new JLabel("Vergessen Sie nicht die Änderungen vor dem Speichern zu \"Übernehmen\".");
-		saveInfoLab_ref.setFont(new Font(saveInfoLab_ref.getFont().getName(), Font.ITALIC, saveInfoLab_ref.getFont().getSize())); 
-		
-		saveInfoBox_ref.add(saveInfoLab_ref);
-		saveInfoBox_ref.add(Box.createGlue());
-		
 		this.add(selectedItemBox_ref);
-		this.add(Box.createVerticalStrut(5));
-		this.add(saveInfoBox_ref);
 		this.add(Box.createVerticalStrut(10));
 		
 		fillSelectedItemBox();
@@ -248,12 +238,12 @@ class SettingsTabKommandos extends SettingsTab {
 	 
 	 /**
 	  *	Nimmt den vom Nutzer ueber die JComboBox </i>cComBox_ref</i> gewaehlten Eintrag aus 
-	  *	der Hauptmatrix des Einstellungs-GUIs, erhalten ueber dessen Methode <i>getSettings()</i>,
+	  *	der Hauptmatrix des Haupt-GUIs, erhalten ueber dessen Methode <i>getSettings()</i>,
 	  *	und formatiert ihn zusammen mit den von der Methode <i>getOSValues()</i> des Haupt-GUIs erhaltenen 
 	  *	OS-Namen in eine fuer die Tabelle dieses Tabs geeignete Form.
 	  * 
 	  * @return DataVector fuer das Tabellenmodell der in diesem Objekt gehaltenen Tabelle.
-	  *	@see TinyAdminSettingsGUI#getSettings()
+	  *	@see TinyAdminGUI#getSettings()
 	  *	@see TinyAdminGUI#getOSValues()
 	  */
 	 private String[][] getSelTabMatrix() {
@@ -266,7 +256,7 @@ class SettingsTabKommandos extends SettingsTab {
 			} //endif
 			for (int i=0; i<custTabMatrix_ref.length; i++) {
 				custTabMatrix_ref[i][0] = osValues_ref[i];
-				custTabMatrix_ref[i][1] = (setGui_ref.getSettings())[1][selectedIndex][i+1];
+				custTabMatrix_ref[i][1] = (setGui_ref.getGUI().getSettings())[1][selectedIndex][i+1];
 			} //endfor
 			
 			return custTabMatrix_ref;
@@ -283,12 +273,12 @@ class SettingsTabKommandos extends SettingsTab {
 	  *	<p>Erneuert das TextFeld <i>custNameTextF_ref</i> und das DefaultTableModel der Tabelle
 	  *	<i>custTable_ref</i> mit Werten, entsprechend dem durch die JComboBox <i>cComBox_ref</i>
 	  *	vom Benutzer ausgewaehlten Kommando.</p>
-	  *	<p>Die Werte werden aus der durch das Einstellungs-GUI erhaltenen Matrix ausgelesen, welche ueber 
-	  *	die Methode <i>getSettings()</i> des Einstellungs-GUIs abgerufen werden kann.</p>
+	  *	<p>Die Werte werden aus der durch das Haupt-GUI erhaltenen Matrix ausgelesen, welche ueber 
+	  *	dessen Methode <i>getSettings()</i> abgerufen werden kann.</p>
 	  * <p>Um die Werte fuer die Tabelle korrekt zu formatieren, wird die Methode <i>getSelTabMatrix()</i> genutzt.</p>
 	  *
 	  *	@see #getSelTabMatrix()
-	  *	@see TinyAdminSettingsGUI#getSettings()
+	  *	@see TinyAdminGUI#getSettings()
 	  */
 	 private void fillSelectedItemBox() {
 		int selectedIndex = cComBox_ref.getSelectedIndex();
@@ -296,7 +286,7 @@ class SettingsTabKommandos extends SettingsTab {
 			cComBox_ref.setSelectedIndex(0);
 			selectedIndex = 0;
 		} //endif
-		custNameTextF_ref.setText((setGui_ref.getSettings())[1][selectedIndex][0]);
+		custNameTextF_ref.setText((setGui_ref.getGUI().getSettings())[1][selectedIndex][0]);
 		custTableMod_ref.setDataVector(getSelTabMatrix(), new String[]{"OS", "Kommando"});
 		custTable_ref.getColumnModel().getColumn(0).setPreferredWidth(60);
 		custTable_ref.getColumnModel().getColumn(1).setPreferredWidth(540);
@@ -308,14 +298,14 @@ class SettingsTabKommandos extends SettingsTab {
 	  *	kann mit dieser Methode die JComboBox <i>cComBox_ref</i> erneuert (neu
 	  *	befuellt) werden.</p>
 	  *	<p>Zugriff auf die Kommandonamen erhaelt diese Methode ueber die <i>getSettings()</i>-
-	  *	Methode des Einstellungs-GUIs.</p>
+	  *	Methode des Haupt-GUIs.</p>
 	  *
-	  *	@see TinyAdminSettingsGUI#getSettings()
+	  *	@see TinyAdminGUI#getSettings()
 	  */
 	 private void updateCommandBox() {
 			cComBox_ref.removeAllItems();
-			for (int i=0; i<(setGui_ref.getSettings())[1].length; i++) {
-				cComBox_ref.addItem((setGui_ref.getSettings())[1][i][0]);
+			for (int i=0; i<(setGui_ref.getGUI().getSettings())[1].length; i++) {
+				cComBox_ref.addItem((setGui_ref.getGUI().getSettings())[1][i][0]);
 			} //endfor
 	 } //endmethod updateCommandBox
 	 
@@ -326,11 +316,11 @@ class SettingsTabKommandos extends SettingsTab {
 	  *	Tabelle zum Editieren des Kommandos mit den entsprechenden Werten befuellt.</p>
 	  *	<p>Hierzu wird die Methode <i>fillSelectedItemBox()</i> aufgerufen.</p>
 	  *
-	  *		@see #fillSelectedItemBox()
+	  *	@see #fillSelectedItemBox()
 	  *
-	  * 	@version 0.2 von 06.2011
+	  * @version 0.3 von 06.2011
 	  *
-	  * 	@author Tobias Burkard
+	  * @author Tobias Burkard
 	  */
 	 private class ComboBoxListener implements ItemListener {
 			public void itemStateChanged(ItemEvent ev_ref) {
@@ -341,55 +331,55 @@ class SettingsTabKommandos extends SettingsTab {
 	 } //endclass ComboBoxListener
 	 
 	 /**
-		 *	Listener fuer alle Knoepfe des Kommando-Tabs.
-		 *	Bietet folgende Moeglichkeiten:
-		 *	<ul>
-		 *		<li>Neu<ul>
-		 *				<li>Erstellt ein neues Kommando und laedt es in die Editor-Tabelle und das Textfeld.</li></ul>
-		 *		</li>
-		 *		<li>Loeschen<ul>
-		 *				<li>Loescht das ausgewaehlte Kommando aus der List der gespeicherten Befehle.</li></ul>
-		 *		</li>
-		 *		<li>Uebernehmen<ul>
-		 *				<li>Speichert die Veraenderungen am ausgewaehlten Kommando.</li></ul>
-		 *		</li>
-		 *		<li>Reset<ul>
-		 *				<li>Loescht alle Felder der Editor-Tabelle und das Textfeld, fuer den ausgewaehlten Befehl.</li></ul>
-		 *		</li>
-		 *	</ul>
-		 *
-		 * 	@version 0.2 von 06.2011
-		 *
-		 * 	@author Tobias Burkard
-		 */
-		private class SettingsCommandButtonListener implements ActionListener {
-			public void actionPerformed(ActionEvent ev_ref) {
+	  *	Listener fuer alle Knoepfe des Kommando-Tabs.
+	  *	Bietet folgende Moeglichkeiten:
+	  *	<ul>
+	  *		<li>Neu<ul>
+	  *				<li>Erstellt ein neues Kommando und laedt es in die Editor-Tabelle und das Textfeld.</li></ul>
+	  *		</li>
+	  *		<li>Loeschen<ul>
+	  *				<li>Loescht das ausgewaehlte Kommando aus der List der gespeicherten Befehle.</li></ul>
+	  *		</li>
+	  *		<li>Uebernehmen<ul>
+	  *				<li>Speichert die Veraenderungen am ausgewaehlten Kommando.</li></ul>
+	  *		</li>
+	  *		<li>Reset<ul>
+	  *				<li>Loescht alle Felder der Editor-Tabelle und das Textfeld, fuer den ausgewaehlten Befehl.</li></ul>
+	  *		</li>
+	  *	</ul>
+	  *
+	  * 	@version 0.3 von 06.2011
+	  *
+	  * 	@author Tobias Burkard
+	  */
+	 private class SettingsCommandButtonListener implements ActionListener {
+		 public void actionPerformed(ActionEvent ev_ref) {
 				if (ev_ref.getActionCommand().equals("Neu")) {
 					String[][][] newMatrix_ref = new String[2][][];
-				    newMatrix_ref[0] = (setGui_ref.getSettings())[0];
+				    newMatrix_ref[0] = (setGui_ref.getGUI().getSettings())[0];
 				    
-				    String[] tempData_ref = new String[(setGui_ref.getSettings())[1][0].length];
-				    tempData_ref[0] = "Neues Kommando #" + ((setGui_ref.getSettings())[1].length+1);
+				    String[] tempData_ref = new String[(setGui_ref.getGUI().getSettings())[1][0].length];
+				    tempData_ref[0] = "Kommando #" + ((setGui_ref.getGUI().getSettings())[1].length+1);
 				    for (int i=1; i<tempData_ref.length; i++) {
 				    	tempData_ref[i] = "";
 				    } //endfor
-				    newMatrix_ref[1] = new String[(setGui_ref.getSettings())[1].length + 1][];
+				    newMatrix_ref[1] = new String[(setGui_ref.getGUI().getSettings())[1].length + 1][];
 				    
-				    for (int i=0; i<(setGui_ref.getSettings())[1].length; i++) {
-				    	newMatrix_ref[1][i] = (setGui_ref.getSettings())[1][i];
+				    for (int i=0; i<(setGui_ref.getGUI().getSettings())[1].length; i++) {
+				    	newMatrix_ref[1][i] = (setGui_ref.getGUI().getSettings())[1][i];
 				    } //endfor
 				    newMatrix_ref[1][newMatrix_ref[1].length-1] = tempData_ref;
-				    setGui_ref.setSettings(newMatrix_ref);
+				    setGui_ref.getGUI().initializeSettings(newMatrix_ref);
 				    updateCommandBox();
 				    cComBox_ref.setSelectedIndex(cComBox_ref.getItemCount() - 1);
 				} else if (ev_ref.getActionCommand().equals("Löschen")) {
-					if ((setGui_ref.getSettings())[1].length > 1) {
+					if ((setGui_ref.getGUI().getSettings())[1].length > 1) {
 						String[][][] newMatrix_ref = new String[2][][];
-					    newMatrix_ref[0] = (setGui_ref.getSettings())[0];
+					    newMatrix_ref[0] = (setGui_ref.getGUI().getSettings())[0];
 					    int toDelete = cComBox_ref.getSelectedIndex();
-					    String[][] ccommandsOld_ref = (setGui_ref.getSettings())[1];
+					    String[][] ccommandsOld_ref = (setGui_ref.getGUI().getSettings())[1];
 					    ccommandsOld_ref[toDelete] = null;
-					    newMatrix_ref[1] = new String[(setGui_ref.getSettings())[1].length - 1][];
+					    newMatrix_ref[1] = new String[(setGui_ref.getGUI().getSettings())[1].length - 1][];
 					    int count = 0;
 					    for (int i=0; i<ccommandsOld_ref.length; i++) {
 					    	if (ccommandsOld_ref[i] != null) {
@@ -397,7 +387,7 @@ class SettingsTabKommandos extends SettingsTab {
 					    		count++;
 					    	} //endif
 					    } //endfor
-					    setGui_ref.setSettings(newMatrix_ref);
+					    setGui_ref.getGUI().initializeSettings(newMatrix_ref);
 					    updateCommandBox();
 					    int newIndex = 0;
 					    if (toDelete != 0) {
@@ -407,17 +397,18 @@ class SettingsTabKommandos extends SettingsTab {
 					} else {
 						setGui_ref.displayError("Sie können nicht ihr einziges Kommando löschen.");
 					} //endif
-				} else if (ev_ref.getActionCommand().equals("Übernehmen")) {
+				} else if (ev_ref.getActionCommand().equals("Speichern")) {
 					if (custNameTextF_ref.getText().length() > 15) {
 						setGui_ref.displayError("Der Names Ihres Kommandos darf nicht größer als 15 Zeichen sein.");
 					} else {
 						int selectedIndex = cComBox_ref.getSelectedIndex();
-					    for (int i=1; i<(setGui_ref.getSettings())[1][selectedIndex].length; i++) {
-					    	(setGui_ref.getSettings())[1][selectedIndex][i] = (String)custTableMod_ref.getValueAt((i-1),1);
+					    for (int i=1; i<(setGui_ref.getGUI().getSettings())[1][selectedIndex].length; i++) {
+					    	(setGui_ref.getGUI().getSettings())[1][selectedIndex][i] = (String)custTableMod_ref.getValueAt((i-1),1);
 					    } //endfor
-					    (setGui_ref.getSettings())[1][selectedIndex][0] = custNameTextF_ref.getText();
+					    (setGui_ref.getGUI().getSettings())[1][selectedIndex][0] = custNameTextF_ref.getText();
 					    updateCommandBox();
 					    cComBox_ref.setSelectedIndex(selectedIndex);
+					    setGui_ref.getGUI().initializeSettings(setGui_ref.getGUI().getSettings());
 					} //endif
 				} else if (ev_ref.getActionCommand().equals("Reset")) {
 					String[] osValues_ref = setGui_ref.getGUI().getOSValues();
@@ -427,25 +418,24 @@ class SettingsTabKommandos extends SettingsTab {
 						commandMatrix_ref[i][1] = "";
 					} //endfor
 					
-					custNameTextF_ref.setText("Neues Kommando #" + (cComBox_ref.getSelectedIndex() + 1));
+					custNameTextF_ref.setText("Kommando #" + (cComBox_ref.getSelectedIndex() + 1));
 					custTableMod_ref.setDataVector(commandMatrix_ref, new String[]{"OS", "Kommando"});
 					custTable_ref.getColumnModel().getColumn(0).setPreferredWidth(60);
 					custTable_ref.getColumnModel().getColumn(1).setPreferredWidth(540);
 					custTableMod_ref.fireTableDataChanged();
 				} //endif
-			} //endmethod actionPerformed
-		} //endclass SettingsCommandButtonListener
+		 } //endmethod actionPerformed
+	} //endclass SettingsCommandButtonListener
 	 
 	// --- Innere Klassen
 	/**
 	 *	Eigenes Tabellenmodell: Setzt alle Zellen der ersten Spalte auf nicht-editierbar.
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
 	class CustomTableModel extends DefaultTableModel {
-
 		private static final long serialVersionUID = 100330981635722317L;
 		
 		public CustomTableModel(Object[][] werte_ref, Object[] bezeichner_ref) {
@@ -467,7 +457,7 @@ class SettingsTabKommandos extends SettingsTab {
 	 *	fuer jeglichen Zugriff gesperrt sind.</p>
 	 *	<p>Alle anderen Zellen bleiben fuer Zugriffe offen.</p>
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
@@ -495,5 +485,48 @@ class SettingsTabKommandos extends SettingsTab {
 	        return this;
 	    } //endmethod getTableCellRendererComponent
 	} //endclass CustomTableCellRenderer
+	
+	/**
+	 * 	<p>Eigener <i>DefaultCellEditor</i>: Sorgt dafuer, dass der gesamte Zellinhalt beim 
+	 * 	Sprung in eine neue Zelle selektiert wird.</p>
+	 *	<p>Dies ermoeglicht das sofortige Ueberschreiben beim Sprung in eine neue Zelle.
+	 *	Beim Standardverhalten wuerde der neue Text zum bereits existierenden hinzuaddiert.</p>
+	 *	<p>Zusaetzlich wird die Zelle wieder farblich neu formatiert. Der Editor sollte also nicht
+	 *	verwendet werden, wenn das durch <i>LookAndFeelHelfer</i> gesetzte Look&Feel
+	 *	fuer die Tabelle beibehalten werden soll soll.</p>
+	 *
+	 *	@see LookAndFeelHelfer
+	 *
+	 * 	@version 0.3 von 06.2011
+	 *
+	 * 	@author Tobias Burkard
+	 */
+	class TableEditor extends DefaultCellEditor {
+		static final long serialVersionUID = 199880983615777317L;
+		JTextField tf_ref;
+
+		TableEditor() {
+			super(new JTextField());
+		} //endconstructor
+
+		public Component getTableCellEditorComponent(JTable table_ref, Object value_ref, boolean isSelected, int row, int column) {
+			Component c_ref = super.getTableCellEditorComponent(table_ref, value_ref, isSelected, row, column);
+			
+			if (c_ref instanceof JTextField) {
+				tf_ref = ((JTextField)c_ref);
+				tf_ref.selectAll();
+				tf_ref.setBorder(BorderFactory.createLineBorder(new Color(99, 130, 191), 2));
+				tf_ref.setBackground(Color.WHITE);
+				if (isSelected) {
+					tf_ref.setBackground(new Color(184,  207, 229));
+				} else {
+					tf_ref.setBackground(Color.WHITE);
+				} //endif
+				c_ref = tf_ref;
+			} //endif
+
+			return c_ref;
+		} //endmethod getTableCellEditor
+	} //endclass TableEditor
 	
 } //endclass SettingsTabKommandos

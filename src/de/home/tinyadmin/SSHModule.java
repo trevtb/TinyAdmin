@@ -2,6 +2,7 @@ package de.home.tinyadmin;
 
 // --- Importe
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -92,15 +93,16 @@ import ch.ethz.ssh2.StreamGobbler;
 *	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 *	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p><br />
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
 class SSHModule extends ActionModule {
 	// --- Attribute
-	private Connection connection_ref;
-	private Session session_ref;
-	
+	private Connection connection_ref;	// Verbindungs-Objekt, haelt die Verbindung zum Host
+	private Session session_ref;		// Objekt fuer die eigentliche SSH-Session
+	private boolean hasKey;				// Legt fest ob ein Keyfile verwendet werden soll
+		
 	// --- Konstruktoren
 	/**
 	 *	Initialisiert die uebergebenen Referenzen auf die <i>Nachrichtenfabrik</i> und <i>TestHelfer-Klasse</i>
@@ -133,7 +135,7 @@ class SSHModule extends ActionModule {
 	 *	Hier ist der eigentliche Code, welcher das Kommando auf dem fremden Host ausfuehrt, implementiert.</p>
 	 *	<p>Es wird mit <i>Ganymed SSH-2 for Java</i> eine SSH2 Verbindung zu einem Fremdrechner aufgebaut und 
 	 *	ein Befehl ausgefuert. Moeglich macht dies der uerbergebene Parameter, welcher neben Verbindungsinformationen, 
-	 *	dem Benutzernamen, dem Passwort, dem Sudo-Passwort, und dem Aktionstyp, auch den noetigen Befehl speichert.
+	 *	dem Benutzernamen, dem Passwort, dem Sudo-Passwort, dem Keyfile und dem Aktionstyp, auch den noetigen Befehl speichert.
 	 *	Als Trennzeichen der einzelnen Informationen dient <i>#D3l1M3t3R#</i>.</p>
 	 *	<p>Ist die Variable <i>abbort</i> im Hauptprogramm auf <i>true</i> gesetzt, so bricht die Methode ab. Zur
 	 *	Sicherheit ruft das <i>TaskRunnable</i> welche dieses Objekt traegt, noch die Methode <i>die()</i> auf,
@@ -151,13 +153,20 @@ class SSHModule extends ActionModule {
 		String retVal_ref = "";
 		String[] t_ref = param_ref.split("#D3l1M3t3R#");
 		String ip_ref = t_ref[0];
-		String user_ref = t_ref[1];
-		String pass_ref = t_ref[2];
+		String port_ref = t_ref[1];
+		String keyf_ref = t_ref[2];
+		if (keyf_ref.equals("-----")) {
+			hasKey = false;
+		} else {
+			hasKey = true;
+		} //endif
+		String user_ref = t_ref[3];
+		String pass_ref = t_ref[4];
 		String cmd_ref = "";
-		if (t_ref.length != 4) {
+		if (t_ref.length != 6) {
 			return "Kein Befehl zur Ausführung für dieses Betriebssystem angegeben.";
 		} else {
-			cmd_ref = t_ref[3];
+			cmd_ref = t_ref[5];
 		} //endif
 		boolean reachable = false;
 		try {
@@ -168,22 +177,43 @@ class SSHModule extends ActionModule {
 		
 		if (reachable) {
 			try {
-				connection_ref = new Connection(ip_ref);
+				// Feststellen, ob ein KeyFile verwendet werden soll
+				File keyfile_ref = null;
+				if (hasKey) {
+					keyfile_ref = new File(keyf_ref);
+					if (!keyfile_ref.canRead()) {
+						return "FEHLER: Das Keyfile konnte nicht gefunden werden.";
+					} //endif
+				} //endif
+				
+				// Verbindung herstellen
+				connection_ref = new Connection(ip_ref, Integer.parseInt(port_ref));
 				connection_ref.connect();
-				boolean isLogin = connection_ref.authenticateWithPassword(user_ref, pass_ref);
+				
+				// Hier beginnt die Authentifizierung
+				boolean isLogin;
+				if (hasKey) {
+					isLogin = connection_ref.authenticateWithPublicKey(user_ref, keyfile_ref, pass_ref);
+				} else {
+					isLogin = connection_ref.authenticateWithPassword(user_ref, pass_ref);
+				} //endif
+				
 				if (isLogin == false) {
 					return "Authentifizierung gescheitert.";
 				} //endif
+				// ENDE der Authentifizierung
 	
+				// Session erstellen und Befehl ausfuehren
 				session_ref = connection_ref.openSession();
 				session_ref.execCommand(cmd_ref);
 	
+				// stdout und stderr abfangen
 				InputStream stdout_ref = new StreamGobbler(session_ref.getStdout());
 				InputStream stderr_ref = new StreamGobbler(session_ref.getStderr());
-				
 				BufferedReader bread1_ref = new BufferedReader(new InputStreamReader(stdout_ref));
 				BufferedReader bread2_ref = new BufferedReader(new InputStreamReader(stderr_ref));
 				
+				// Ausgabe jeder Zeile an die MessageFacility zur Auswertung umleiten
 				String line_ref = "";
 				String err_ref = "";
 				int count = 0;
@@ -204,6 +234,7 @@ class SSHModule extends ActionModule {
 					} //endif
 				} //endwhile
 				
+				// Ausgabe jeder Fehlermeldung an die MessageFacility weiterleiten
 				while (!TinyAdminC.abbort) {
 					err_ref = bread2_ref.readLine();
 					if (err_ref == null) {

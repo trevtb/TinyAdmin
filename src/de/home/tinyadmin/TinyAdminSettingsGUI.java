@@ -69,9 +69,9 @@ import javax.swing.JTabbedPane;
 *	uebernimmt.</p> 
 *	<p>Zudem hat ein Objekt dieser Klasse Zugriff auf alle Methoden des Haupt-GUIs <i>TinyAdminGUI</i> 
 *	ueber eine beim Erzeugen uebergebene Referenz auf dieses und kann sich somit Zugang zu den bereits, falls
-*	vorhandenen, gespeicherten Hosteinstellungen verschaffen.</p>
+*	vorhandenen, gespeicherten Hosteinstellungen verschaffen, bzw. diese an die einzelnen Tabs weitergeben.</p>
 *
-* 	@version 0.2 von 06.2011
+* 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
@@ -79,8 +79,6 @@ class TinyAdminSettingsGUI {
 	// --- Attribute
 	private JFrame settingsFrame_ref;	// Fenster (JFrame) des Settings-GUI
 	private TinyAdminGUI gui_ref;	// Referenz auf das HauptGUI
-	private String[][][] settings_ref;	// Matrix mit Einstellungen: die erste Zeile fasst die Hosteinstellungen,
-										// die zweite Zeile die Kommando-Einstellungen
 	private SettingsTabHosts hostTab_ref;	// Referenz auf das Host-Tab
 	private SettingsTabKommandos comTab_ref;	// Referenz auf das Kommando-Tab
 	
@@ -96,7 +94,6 @@ class TinyAdminSettingsGUI {
 	*/
 	TinyAdminSettingsGUI(TinyAdminGUI gui_ref) {
 		this.gui_ref = gui_ref;
-		this.settings_ref = gui_ref.getSettings();
 		drawGUI();
 	} //endconstructor
 	
@@ -104,8 +101,8 @@ class TinyAdminSettingsGUI {
 	/**
 	 *	<p>Zeichnet das Einstellungs-GUI, bestehend aus einer <i>JTabbedPane</i>, welche
 	 *	2 Tabs fasst: <i>SettingsTabHosts</i> und <i>SettingsTabKommandos</i>.</p>
-	 *	<p>Beide Tab-Objekte sind Unterklassen eines <i>SettingsTab</i>, welches wiederum
-	 *	von JPanel erbt. Somit lassen sich beide Objekte nahtlos in eine TabbedPane einfuegen.</p>
+	 *	<p>Beide Tab-Objekte erben von JPanel und somit lassen sich beide Objekte nahtlos in eine 
+	 *	TabbedPane einfuegen.</p>
 	 *	<p>Zusaetzlich werden noch zwei Buttons gezeichnet (Speichern und Schliessen). Beide erhalten
 	 *	einen <i>SettingsButtonListener</i>.</p>
 	 *
@@ -134,16 +131,10 @@ class TinyAdminSettingsGUI {
 		tabbedPane_ref.setMnemonicAt(1, KeyEvent.VK_2);
 		
 		Box setButBox_ref = new Box(BoxLayout.X_AXIS);
-		ImageIcon setSaveIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/saveIcon.png"));
-		JButton setSaveBut_ref = new JButton("Speichern", setSaveIcon_ref);
-		setSaveBut_ref.setToolTipText("Speichert die Tabelle auf der Festplatte.");
-		setSaveBut_ref.addActionListener(new SettingsButtonListener());
 		ImageIcon setCloseIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/exitIcon.png"));
 		JButton setCloseBut_ref = new JButton("Schließen", setCloseIcon_ref);
 		setCloseBut_ref.setToolTipText("Schließt das Einstellungs-Menü.");
 		setCloseBut_ref.addActionListener(new SettingsButtonListener());
-		setButBox_ref.add(setSaveBut_ref);
-		setButBox_ref.add(Box.createHorizontalStrut(2));
 		setButBox_ref.add(setCloseBut_ref);
 		
 		backgroundBox_ref.add(Box.createVerticalStrut(5));
@@ -155,25 +146,6 @@ class TinyAdminSettingsGUI {
 		settingsFrame_ref.setResizable(false);
 		settingsFrame_ref.setVisible(true);
 	} //endmethod drawGUI
-
-	/**
-	 *	Liefert eine Referenz auf die von diesem Objekt gehaltene Referenz auf die
-	 *	Einstellungs-Matrix zurueck.
-	 *
-	 *	@return Referenz auf die Einstellungs-Matrix.
-	 */
-	String[][][] getSettings() {
-		return settings_ref;
-	} //endmethod getSettings
-	
-	/**
-	 *	Setzt die Einstellung-Matrix auf die neu uebergebene Matrix.
-	 *
-	 *	@param settings_ref Referenz auf die neue Einstellungs-Matrix.
-	 */
-	void setSettings(String[][][] settings_ref) {
-		this.settings_ref = settings_ref;
-	} //endmethod setSettings
 	
 	/**
 	 *	Liefert eine Referenz auf das Haupt-GUI <i>TinyAdminGUI</i> zurueck.
@@ -185,7 +157,16 @@ class TinyAdminSettingsGUI {
 	} //endmethod getGUI
 	
 	/**
-	 *	Liefert eine Referenz auf das Fenster (den <i>JFrame</i>) des Einstellungs-Menues zurueck.
+	 *	Liefert eine Referenz auf das Host-Tab der TabbedPane zurueck.
+	 * 
+	 * 	@return Referenz auf das Host-Tab.
+	 */
+	SettingsTabHosts getHostTab() {
+		return hostTab_ref;
+	} //endmethod getHostTab
+	
+	/**
+	 *	Liefert eine Referenz auf das Fenster (den <i>JFrame</i>) des Einstellungs-GUIs zurueck.
 	 *	Dies ist nuetzlich, um ihn z.B. von ausserhalb zu schliessen.
 	 *
 	 *	@return Referenz auf das Fenster des Einstellungs-GUIs.
@@ -204,140 +185,26 @@ class TinyAdminSettingsGUI {
 		JOptionPane.showMessageDialog(settingsFrame_ref, message_ref, "Fehler", JOptionPane.ERROR_MESSAGE);
 	} //endmethod displayError
 	
-	/**
-	 * 	Zeigt eine Informationsnachricht im Settings-GUI mit Hilfe der <i>JOptionPane</i> an.
-	 * 
-	 * 	@param message_ref Die Meldung, welche angezeigt werden soll.
-	 */
-	private void displayMsg(String message_ref) {
-		JOptionPane.showMessageDialog(settingsFrame_ref, message_ref, "Hinweis", JOptionPane.INFORMATION_MESSAGE);
-	} //endmethod displayMsg
-	
 	// --- Listener
 	/**
 	 *	Listener fuer die unteren Knoepfe des Einstellungs-GUIs.
 	 *	Bietet folgende Moeglichkeiten:
 	 *	<ul>
 	 *		<li>Speichern<ul>
-	 *		<li>Speichert alle getaetigten Einstellungen auf der Festplatte.</li></ul>
+	 *			<li>Speichert alle getaetigten Einstellungen auf der Festplatte.</li></ul>
 	 *		</li>
 	 *		<li>Schliessen<ul>
-	 *				<li>Blendet das Einstellungs-Menue-Fenster aus.</li></ul>
+	 *			<li>Blendet das Einstellungs-Menue-Fenster aus.</li></ul>
 	 *		</li>
 	 *	</ul>
 	 *
-	 * 	@version 0.2 von 06.2011
+	 * 	@version 0.3 von 06.2011
 	 *
 	 * 	@author Tobias Burkard
 	 */
 	private class SettingsButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev_ref) {
-			if (ev_ref.getActionCommand().equals("Speichern")) {
-				boolean hasInvalidNames = false;
-				boolean hasInvalidMACs = false;
-				boolean hasNoUser = false;
-				boolean hasNoPWDs = false;
-				boolean sudoNoPWD = false;
-				boolean hasInvalidHosts = false;
-				
-				int nRow = hostTab_ref.getHostTabMod().getRowCount(), nCol = hostTab_ref.getHostTabMod().getColumnCount();
-				
-				for (int i=0; i<nRow; i++) {
-					if ((((String)hostTab_ref.getHostTabMod().getValueAt(i,0)).toCharArray().length > 12) || (((String)hostTab_ref.getHostTabMod().getValueAt(i,0)).equals(""))) {
-			    		hasInvalidNames = true;
-		        	} //endif
-					
-					if (((String)hostTab_ref.getHostTabMod().getValueAt(i,2)).equals("")) {
-						hasNoUser = true;
-					} else {
-						if (!gui_ref.getTestHelfer().isRootLogin((String)hostTab_ref.getHostTabMod().getValueAt(i,2)) &&
-								((String)hostTab_ref.getHostTabMod().getValueAt(i,4)).equals("")) {
-							sudoNoPWD = true;
-						} //endif	
-					} //endif	
-					
-					if (((String)hostTab_ref.getHostTabMod().getValueAt(i,3)).equals("")) {
-						hasNoPWDs = true;
-					} //endif
-					
-					if (!((String)hostTab_ref.getHostTabMod().getValueAt(i,5)).equals("")) {
-		        		if (!gui_ref.getTestHelfer().isValidMAC((String)hostTab_ref.getHostTabMod().getValueAt(i,5))) {
-							hasInvalidMACs = true;
-						} //endif
-		        	} //endif
-					
-					if (((String)hostTab_ref.getHostTabMod().getValueAt(i,1)).equals("")) {
-						hasInvalidHosts = true;
-					} //endif
-				} //endfor
-				
-			    String[][][] tempData_ref = new String[2][][];
-			    tempData_ref[1] = settings_ref[1];
-			    tempData_ref[0] = new String [nRow][nCol];
-			    for (int i=0; i<nRow; i++) {
-			        for (int j=0; j<nCol; j++) {
-			            tempData_ref[0][i][j] = (String)hostTab_ref.getHostTabMod().getValueAt(i,j);
-			        } //endfor
-			    } //endfor
-			    
-			    for (int i=0; i<nRow; i++) {
-			    	for (int j=0; j<nRow; j++) {
-			    		if ((i != j) && tempData_ref[0][i][0].equals(tempData_ref[0][j][0])) {
-			    			hasInvalidNames = true;
-			    		} //endif
-			    	} //endfor
-			    } //endfor
-			    
-			    String errorMsg_ref = "";
-			    String infoMsg_ref = "";
-				if (!hasInvalidNames && !hasInvalidMACs && !hasInvalidHosts) {
-					if (hasNoUser) {
-						infoMsg_ref += "ACHTUNG: Ein oder mehrere der Einträge verfügen über keinen Benutzernamen.\n" + 
-								"Ihnen werden daher die Funktionen Update, Reboot und Shutdown für diese Hosts\n" + 
-								"nicht zur verfügung stehen.\n\n";
-					} //endif
-					if (hasNoPWDs) {
-						infoMsg_ref += "HINWEIS: Sie haben bei ein oder mehreren Hosts kein Passwort angegeben.\n" + 
-										"Falls auf der Zielmaschine zum Login kein Passwort benötigt wird,\n" +
-										"so sollten Sie den Systemadministrator darum bitten, dieses Verhalten aus\n"+
-										"Sicherheitsgründen zu ändern.\n\n";
-					} //endif
-					if (sudoNoPWD) {
-						infoMsg_ref += "HINWEIS: Bei ein oder mehreren Hosts wollen sie sich als normaler Benutzer anmelden,\n" + 
-										"geben aber kein Sudo-Passwort an. Falls das Sudo-Passwort auf dem Fremdrechner wirklich nicht gesetzt ist,\n" +
-										"so sollten Sie den Systemadministrator darum bitten, dies aus Sicherheitsgründen zu setzen.\n" +
-										"Falls das Passwort nicht leer ist, sie es aber nicht kennen, so werden sie weder Update-, noch\n" +
-										"Reboot-, noch Shutdown-Aktionen durchführen können.\n\n";
-					} //endif
-					if (!infoMsg_ref.equals("")) {
-						infoMsg_ref += "Die Einstellungen wurden dennoch gespeichert.";
-					} //endif
-					gui_ref.initializeSettings(tempData_ref);
-					if (!infoMsg_ref.equals("")) {
-						displayMsg(infoMsg_ref);
-					} //endif
-				} else {
-					if (hasInvalidNames) {
-						errorMsg_ref += "FEHLER: Eine oder mehrere der angegebenen Host-Bezeichnungen sind ungültig.\n" + 
-										"Sie müssen für jeden Eintrag eine Bezeichnung (kleiner/gleich 12 Zeichen) vergeben\n" +
-										"und keine darf doppelt vorkommen.";
-					} //endif
-					if (hasInvalidMACs) {
-						if (!errorMsg_ref.equals("")) {
-							errorMsg_ref += "\n\n";
-						} //endif
-						errorMsg_ref += "FEHLER: Ein oder mehrere Einträge besitzen eine ungütlige MAC-Adresse.\n" +
-										"Geben Sie bitte entweder keine oder aber eine gültige Adresse an.";
-					} //endif
-					if (hasInvalidHosts) {
-						if (!errorMsg_ref.equals("")) {
-							errorMsg_ref += "\n\n";
-						} //endif
-						errorMsg_ref += "FEHLER: Ein oder mehrere der Einträge besitzen keine IP-Adresse/Hostnamen.";
-					} //endif
-					displayError(errorMsg_ref);
-				} //endif
-			} else if (ev_ref.getActionCommand().equals("Schließen")) {
+			if (ev_ref.getActionCommand().equals("Schließen")) {
 				settingsFrame_ref.dispose();
 				settingsFrame_ref = null;
 			} //endif
