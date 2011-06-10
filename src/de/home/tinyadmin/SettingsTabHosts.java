@@ -106,7 +106,7 @@ class SettingsTabHosts extends JPanel {
 	 */
 	SettingsTabHosts(TinyAdminSettingsGUI setGui_ref) {
 		this.setGui_ref = setGui_ref;
-		hostTableMod_ref = new DefaultTableModel(null, HOST_TABLENAMES);
+		hostTableMod_ref = new CustomTableModel(null, HOST_TABLENAMES);
 		drawTab();
 	} //endconstructor
 	
@@ -119,7 +119,8 @@ class SettingsTabHosts extends JPanel {
 	 *	macht, da diese maskiert dargestellt werden. Fuer das Generieren der Tabelledaten ist die Methode
 	 *	<i>generateTableData()</i> zustaendig.</p>
 	 *	<p>Es existiert nur ein einziger Listener, der <i>SettingsButtonListener</i>, welcher allen 
-	 *	Knoepfen hinzugefuegt wird.</p>
+	 *	Knoepfen hinzugefuegt wird. Die Tabelle erhaelt zudem ein CustomTableModel, um sie vor Zugriffen zu
+	 *	schuetzen.</p>
 	 *
 	 *	@see #generateTableData()
 	 */
@@ -142,7 +143,7 @@ class SettingsTabHosts extends JPanel {
 		
 		hostTable_ref = new JTable();
 		hostTable_ref.setPreferredScrollableViewportSize(new Dimension(800,250));
-		hostTableMod_ref = new DefaultTableModel(generateTableData(), HOST_TABLENAMES);
+		hostTableMod_ref = new CustomTableModel(generateTableData(), HOST_TABLENAMES);
 		hostTable_ref.setModel(hostTableMod_ref);
 		hostTable_ref.setDefaultRenderer(Object.class, new DefaultTableCellRenderer());
 		JScrollPane tableScroller_ref = new JScrollPane(hostTable_ref);
@@ -187,10 +188,11 @@ class SettingsTabHosts extends JPanel {
 	} //endmethod drawTab
 	
 	/**
-	 *	Liefert eine Referenz auf das gehaltene DefaultTableModel <i>hostTableMod_ref</i> zurueck. Dieses beinhaltet
+	 *	Liefert eine Referenz auf das gehaltene CustomTableModel <i>hostTableMod_ref</i> zurueck. Dieses beinhaltet
 	 *	die in der Tabelle gehaltenen Einstellungen fuer alle Hosts.
 	 *
 	 *	@return Referenz auf das DefaultTableModel der Tabelle mit Host-Einstellungen.
+	 *	@see CustomTableModel
 	 */
 	DefaultTableModel getHostTabMod() {
 		return hostTableMod_ref;
@@ -347,5 +349,25 @@ class SettingsTabHosts extends JPanel {
 			} //endif
 		} //endmethod actionPerformed
 	} //endclass SettingsHostButtonListener
+	
+	// --- Innere Klassen
+	/**
+	 *	Eigenes Tabellenmodell: Setzt alle Zellen auf nicht-editierbar.
+	 *
+	 * 	@version 0.3 von 06.2011
+	 *
+	 * 	@author Tobias Burkard
+	 */
+	class CustomTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = 100110981666322347L;
+		
+		public CustomTableModel(Object[][] werte_ref, Object[] bezeichner_ref) {
+			super(werte_ref, bezeichner_ref);
+		} //endconstructor
+		
+		public boolean isCellEditable(int row, int column) {
+				return false;
+		} //endmethod isCellEditable
+	} //endclass CustomTableModel
 	
 } //endclass SettingsTabHosts
