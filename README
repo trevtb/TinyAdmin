@@ -7,7 +7,7 @@
 Uebersicht
 --------
 
-TinyAdmin ist ein freie Open-Source-Loesung zur parallelen Serveradministration, also zum schnellen 
+TinyAdmin ist eine freie Open-Source-Loesung zur parallelen Serveradministration, also zum schnellen 
 ausfuehren administrativer Taetigkeiten und Befehlen auf vielen Servern gleichzeitig. 
 Dabei muessen die fremden Hosts nicht zwangslaeufig das gleiche Betriebssystem haben, der auszufuehrende 
 Befehl wird einfach fuer jedes Betriebssystem korrekt angepasst.
