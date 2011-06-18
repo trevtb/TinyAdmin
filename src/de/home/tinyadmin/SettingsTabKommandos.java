@@ -223,6 +223,7 @@ class SettingsTabKommandos extends JPanel {
 		custSaveButton_ref.setToolTipText("Speichert die Veränderungen am ausgewählten Kommando.");
 		custSaveButton_ref.addActionListener(new SettingsCommandButtonListener());
 		JButton custResetButton_ref = new JButton("Reset", custResetIcon_ref);
+		custResetButton_ref.setToolTipText("<html>Setzt das ausgewählte Kommando auf<br>Standardeinstellungen zurück.</html>");
 		custResetButton_ref.addActionListener(new SettingsCommandButtonListener());
 		selItemBoxButtons_ref.add(custSaveButton_ref);
 		selItemBoxButtons_ref.add(Box.createHorizontalStrut(1));

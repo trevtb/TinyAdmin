@@ -156,12 +156,14 @@ class PWDHelfer {
 		Box buttonBox_ref = new Box(BoxLayout.X_AXIS);
 		ImageIcon exitIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/exitIcon.png"));
 		JButton exitBut_ref = new JButton("Verlassen", exitIcon_ref);
+		exitBut_ref.setToolTipText("Beendet die Anwendung.");
 		exitBut_ref.addActionListener(new ButtonListener());
 		buttonBox_ref.add(exitBut_ref);
 		buttonBox_ref.add(Box.createHorizontalStrut(5));
 		
 		ImageIcon okIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/testIcon.png"));
 		okBut_ref = new JButton("Ok", okIcon_ref);
+		okBut_ref.setToolTipText("Bestätigt die Passworteingabe.");
 		okBut_ref.addActionListener(new ButtonListener());
 		buttonBox_ref.add(okBut_ref);
 		pwdBox_ref.add(buttonBox_ref);
@@ -253,11 +255,13 @@ class PWDHelfer {
 		Box buttonBox_ref = new Box(BoxLayout.X_AXIS);
 		ImageIcon cancelIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/cancelIcon.png"));
 		JButton cancelBut_ref = new JButton("Abbrechen", cancelIcon_ref);
+		cancelBut_ref.setToolTipText("Bricht das Neusetzen des Passwortes ab.");
 		cancelBut_ref.addActionListener(new SetButtonListener());
 		buttonBox_ref.add(cancelBut_ref);
 		buttonBox_ref.add(Box.createHorizontalStrut(5));
 		ImageIcon doneIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/testIcon.png"));
 		JButton doneBut_ref = new JButton("Ok", doneIcon_ref);
+		doneBut_ref.setToolTipText("Bestätigt das neue Passwort.");
 		doneBut_ref.addActionListener(new SetButtonListener());
 		buttonBox_ref.add(doneBut_ref);
 		pwdPan_ref.add(buttonBox_ref);

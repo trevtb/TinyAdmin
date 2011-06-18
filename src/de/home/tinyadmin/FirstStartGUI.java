@@ -369,40 +369,47 @@ class FirstStartGUI {
 		if (pos == -1) {
 			ImageIcon cancelIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/cancelIcon.png"));
 			JButton cancelBut_ref = new JButton("Abbrechen", cancelIcon_ref);
+			cancelBut_ref.setToolTipText("Bricht den Wizzard ab und beendet das Programm.");
 			cancelBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(cancelBut_ref);
 			buttonBox_ref.add(Box.createHorizontalStrut(5));
 			
 			ImageIcon backIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/backIcon.png"));
 			JButton backBut_ref = new JButton("Zurück", backIcon_ref);
+			backBut_ref.setToolTipText("Springt einen Schritt zurück.");
 			backBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(backBut_ref);
 			buttonBox_ref.add(Box.createHorizontalStrut(5));
 			
 			ImageIcon nextIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/nextIcon.png"));
 			JButton nextBut_ref = new JButton("Weiter", nextIcon_ref);
+			nextBut_ref.setToolTipText("Springt weiter zum nächsten Schritt.");
 			nextBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(nextBut_ref);
 		} else if (pos == 0) {
 			ImageIcon cancelIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/cancelIcon.png"));
 			JButton cancelBut_ref = new JButton("Abbrechen", cancelIcon_ref);
+			cancelBut_ref.setToolTipText("Bricht den Wizzard ab und beendet das Programm.");
 			cancelBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(cancelBut_ref);
 			buttonBox_ref.add(Box.createHorizontalStrut(5));
 			
 			ImageIcon nextIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/nextIcon.png"));
 			JButton nextBut_ref = new JButton("Weiter", nextIcon_ref);
+			nextBut_ref.setToolTipText("Springt weiter zum nächsten Schritt.");
 			nextBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(nextBut_ref);
 		} else if (pos == 1) {
 			ImageIcon backIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/backIcon.png"));
 			JButton backBut_ref = new JButton("Zurück", backIcon_ref);
+			backBut_ref.setToolTipText("Springt einen Schritt zurück.");
 			backBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(backBut_ref);
 			buttonBox_ref.add(Box.createHorizontalStrut(5));
 			
 			ImageIcon doneIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/testIcon.png"));
 			JButton doneBut_ref = new JButton("Fertig", doneIcon_ref);
+			doneBut_ref.setToolTipText("Schließt den Wizzard ab und startet die Anwendung.");
 			doneBut_ref.addActionListener(new ButtonListener());
 			buttonBox_ref.add(doneBut_ref);
 		} //endif

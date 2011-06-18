@@ -159,7 +159,9 @@ class CustomCMDHelfer {
 		ImageIcon okButIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/testIcon.png"));
 		ImageIcon cancelButIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/cancelIcon.png"));
 		JButton okBut_ref = new JButton("Ok", okButIcon_ref);
+		okBut_ref.setToolTipText("Führt das eingegebene Kommando aus.");
 		JButton cancelBut_ref = new JButton("Abbrechen", cancelButIcon_ref);
+		cancelBut_ref.setToolTipText("Bricht die Aktion ab.");
 		okBut_ref.addActionListener(new CustomButtonListener());
 		cancelBut_ref.addActionListener(new CustomButtonListener());
 		buttonPan_ref.add(okBut_ref);
