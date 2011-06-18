@@ -402,6 +402,7 @@ class SettingsTabKommandos extends JPanel {
 					if (custNameTextF_ref.getText().length() > 15) {
 						setGui_ref.displayError("Der Names Ihres Kommandos darf nicht größer als 15 Zeichen sein.");
 					} else {
+						custTable_ref.getCellEditor().stopCellEditing();
 						int selectedIndex = cComBox_ref.getSelectedIndex();
 					    for (int i=1; i<(setGui_ref.getGUI().getSettings())[1][selectedIndex].length; i++) {
 					    	(setGui_ref.getGUI().getSettings())[1][selectedIndex][i] = (String)custTableMod_ref.getValueAt((i-1),1);
