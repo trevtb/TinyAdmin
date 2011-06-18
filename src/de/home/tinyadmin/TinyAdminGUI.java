@@ -143,11 +143,13 @@ class TinyAdminGUI {
 	private Box seleBox_ref;								// Haelt die Hosteintraege (mit JCheckBoxes)
 	private final String[] BNAMES = {"Update", "Reboot", "Shutdown", "Custom", "Test", "Ping", "WOL"}; // Namen der Standardkommandos
 	
+	// -- Klassenattribute
+	static String pwd_class;
+	
 	// --- Konstruktoren
 	/**	
 	*	<p>Setzt die uebergebene Referenz auf das Hauptprogramm und initialisiert
-	*	alle Hilfsobjekt wie z.B. die zur Datei Ein-/Ausgabe. Es werden die bereits gespeicherten Einstellungen, 
-	*	falls vorhanden, geladen.</p> 
+	*	alle Hilfsobjekt wie z.B. die zur Datei Ein-/Ausgabe.</p>
 	*	<p>Es werden auch alle, der Anwendung bekannten Aktionsknoepfe fuer die einzelnen Funktionen generiert 
 	*	und alle sonst noetigen Objekte initialisiert.</p>
 	*/
@@ -161,15 +163,13 @@ class TinyAdminGUI {
 	
 	// --- Methoden
 	/**
-	 *	<p>Diese Methode versucht zunaechst, ein natives Look&Feel mit Hilfe der <i>tryNativeLook()</i>-Methode
-	 *	zu setzen. Im Anschluss daran wird das GUI gebaut und mit Hilfe der durch den <i>IOHelfer</i> eingelesenen
-	 *	Werte gefuettert.</p> <p>Die Aktionsknoepfe im unteren Teil, werden durch eine eigene Methode,
+	 *	<p>Diese Methode baut das GUI und fuettert es mit den durch den <i>IOHelfer</i> eingelesenen Werten.</p> 
+	 *	<p>Die Aktionsknoepfe im unteren Teil, werden durch eine eigene Methode,
 	 *	<i>createActionButtons()</i>, generiert. Das Status-Textfeld wird auf den Standardtext mit der 
 	 *	<i>setStandardText()</i>-Methode gesetzt. Das TrayIcon wird mit der Methode <i>createTray()</i> generiert.</p>
 	 *	<p>Der Hauptframe erhaelt eine Menubar, deren Elementen jeweils ein <i>MenuListener</i> hinzugefuegt wird. 
 	 *	Die Knoepfe erhalten jeweils einen <i>ButtonListener</i>. Das Fenster selbst erhalten einen <i>FrameListener</i></p>
 	 *
-	 *	@see #tryNativeLook()
 	 *	@see #createActionButtons()
 	 *	@see #createTray()
 	 *	@see #setStandardText()
@@ -179,8 +179,6 @@ class TinyAdminGUI {
 	 *	@see IOHelfer
 	 */
 	void drawGUI() {
-		settings_ref = helfer_ref.readSettings();
-		tryNativeLook();
 		mainFrame_ref = new JFrame("TinyAdmin v0.3");
 		
 		// Tray erzeugen
@@ -207,11 +205,11 @@ class TinyAdminGUI {
 		beendenMenuIt_ref.addActionListener(new MenuListener());
 		dateiMenu_ref.add(beendenMenuIt_ref);
 		JMenu bearbeitenMenu_ref = new JMenu("Bearbeiten");
-		JMenuItem resetMenuIt_ref = new JMenuItem("Reset");
-		resetMenuIt_ref.addActionListener(new MenuListener());
+		JMenuItem wizzardMenuIt_ref = new JMenuItem("Neues Passwort");
+		wizzardMenuIt_ref.addActionListener(new MenuListener());
 		einstellungenMenuIt_ref = new JMenuItem("Einstellungen");
 		einstellungenMenuIt_ref.addActionListener(new MenuListener());
-		bearbeitenMenu_ref.add(resetMenuIt_ref);
+		bearbeitenMenu_ref.add(wizzardMenuIt_ref);
 		bearbeitenMenu_ref.add(einstellungenMenuIt_ref);
 		JMenu hilfeMenu_ref = new JMenu("Hilfe");
 		JMenuItem infoMenuIt_ref = new JMenuItem("Über");
@@ -521,29 +519,7 @@ class TinyAdminGUI {
 	} //endmethod refreshHostList
 	
 	/**
-	 *	<p>Versucht dem GUI ein natives Look&Feel zu verleihen. Hierzu macht es gebrauch von der statischen
-	 *	Methode <i>setNativeLookAndFeel()</i> der Klasse <i>LookAndFeelHelfer</i>.</p> <p>Gelingt dies nicht, wird 
-	 *	die ebenfalls statische Methode <i>setJavaLookAndFeel()</i> dieser Klasse aufgerufen und das GUI 
-	 *	erhaelt den standard Java-Swing-Look.</p>
-	 *
-	 *	@see LookAndFeelHelfer
-	 *	@see LookAndFeelHelfer#setNativeLookAndFeel()
-	 *	@see LookAndFeelHelfer#setJavaLookAndFeel()
-	 */
-	private void tryNativeLook() {
-		try {
-			LookAndFeelHelfer.setNativeLookAndFeel();
-		} catch (Exception ex_ref) {
-			try {
-				LookAndFeelHelfer.setJavaLookAndFeel();
-			} catch (Exception e_ref) {
-				e_ref.printStackTrace();
-			} //endtry
-		} //endtry
-	} //endmethod tryNativeLook
-	
-	/**
-	 *	Erneuert das Untermenue fuer benutzereigene Kommandos des TracIcons
+	 *	Erneuert das Untermenue fuer benutzereigene Kommandos des TrayIcons
 	 *	mit den neuen Werten aus der Einstellungs-Matrix <i>settings_ref</i>.
 	 */
 	private void refreshTrayCommandList() {
@@ -610,17 +586,17 @@ class TinyAdminGUI {
 	} //endmethod createAddHost
 	
 	/**
-	 *	Setzt die Einstellungen auf die uebergebene Matrix, speichert diese mit dem <i>IOHelfer</i>-Objekt
-	 *	und ueberprueft mit Hilfe der Methode <i>validateSettings()</i>, ob die <i>seleBox_ref</i> auf Grund einer 
-	 *	Veraenderung der Hostanzahl neu gezeichnet werden muss.
+	 *	Setzt die Einstellungen auf die uebergebene Matrix, speichert diese mit der Methode <i>writeSettings()</i>
+	 *	des <i>IOHelfer</i>-Objektes und ueberprueft mit Hilfe der Methode <i>validateSettings()</i>, 
+	 *	ob die im GUI gehaltenen Einstellungen noch mit der gehaltenen Matrix synchron sind.
 	 *	
 	 *	@param settings_ref Die zu initialisierenden Settings.
-	 *	@see IOHelfer#writeSettings(String[][][])
+	 *	@see IOHelfer#writeSettings(String[][][], String pwd_ref)
 	 * 	@see #validateSettings()
 	 */
 	void initializeSettings(String[][][] settings_ref) {
 		this.settings_ref = settings_ref;
-		helfer_ref.writeSettings(settings_ref);
+		helfer_ref.writeSettings(settings_ref, pwd_class);
 		validateSettings();
 	} //endmethod initializeSettings
 	
@@ -634,23 +610,29 @@ class TinyAdminGUI {
 	 *	@see #refreshTrayCommandList()
 	 */
 	private void validateSettings() {
-		if (mainHosts_ref.length != settings_ref[0].length) {
+		if (mainHosts_ref != null && mainHosts_ref.length != settings_ref[0].length) {
 			refreshHostList(true);
-		} //endif
-			eCBox_ref.removeAllItems();
-			for (int i=0; i<settings_ref[0].length; i++) {
-				eCBox_ref.addItem(settings_ref[0][i][0]);
-			} //endfor
+		} else if (mainHosts_ref != null && mainHosts_ref.length == settings_ref[0].length) {
 			for (int i=0; i<settings_ref[0].length; i++) {
 				for (int j=0; j<settings_ref[0][i].length; j++) {
 					((JLabel)mainHosts_ref[i][0]).setText(settings_ref[0][i][0]);
 				} //endfor
 			} //endfor
-	
-		ccCombo_ref.removeAllItems();
-		for (int i=0; i<settings_ref[1].length; i++) {
-			ccCombo_ref.addItem(settings_ref[1][i][0]);
-		} //endfor
+		} //endif
+		
+		if (eCBox_ref != null) {
+			eCBox_ref.removeAllItems();
+			for (int i=0; i<settings_ref[0].length; i++) {
+				eCBox_ref.addItem(settings_ref[0][i][0]);
+			} //endfor
+		} //endif
+		
+		if (ccCombo_ref != null) {
+			ccCombo_ref.removeAllItems();
+			for (int i=0; i<settings_ref[1].length; i++) {
+				ccCombo_ref.addItem(settings_ref[1][i][0]);
+			} //endfor
+		} //endif
 		
 		if (customMen_ref != null) {
 			refreshTrayCommandList();
@@ -944,7 +926,7 @@ class TinyAdminGUI {
 	 *	Mit Hilfe der <i>getFrame()</i>-Methode der jeweiligen GUI-Fenster, kann eine Referenz
 	 *	auf deren JFrame bezogen werden: So wird ueberprueft, ob die Fenster aktiviert sind.</p>
 	 *	
-	 *	@param num Legt fest, welche Fenster geschlossen werden sollen. (0=Einstellungen, 1=AddHost, 2=Beide)
+	 *	@param num Legt fest, welche Fenster geschlossen werden sollen: 0=Einstellungen, 1=AddHost, 2=Alle.
 	 */
 	void closeOpenWindows(int num) {
 		if (num==0 || num==2) {
@@ -1012,6 +994,8 @@ class TinyAdminGUI {
 			if (ev_ref.getClickCount() == 2) {
 	            mainFrame_ref.setVisible(true);
 	            mainFrame_ref.toFront();
+	            mainFrame_ref.validate();
+	            mainFrame_ref.repaint();
 			} //endif
         } //endmethod mouseClicked
 		
@@ -1035,7 +1019,7 @@ class TinyAdminGUI {
 	 *
 	 *	@version 0.3 von 06.2011
 	 *
-	 * 	@author tobi
+	 * 	@author Tobias Burkard
 	 */
 	private class FrameListener implements WindowListener {
 		public void windowActivated(WindowEvent ev_ref) {
@@ -1066,19 +1050,18 @@ class TinyAdminGUI {
 	 *	Listener fuer die Menubar des Haupt-GUIs, sowie bedingt fuer Elemente des Trays.
 	 *	Moegliche Aktionen:
 	 *	<ul>
-	 *		<li>Beenden<ul>
+	 *		<li>Beenden:<ul>
 	 *				<li>Beendet das Programm.</li></ul>
 	 *		</li>
-	 *		<li>Ueber<ul>
+	 *		<li>Ueber:<ul>
 	 *				<li>Blendet das Info-Fenster mit Hilfe der <i>JOptionPane</i> ein.</li></ul>
 	 *		</li>
-	 *		<li>Reset<ul>
-	 *				<li>Markiert alle Hosts, setzt das Status-Textfeld zurueck und setzt sowohl die
-	 *				Prozess-Auswahl, als auch die Auswahl fuer das Benutzer-eigene Kommando
-	 *				auf den Standardeintrag.</li></ul>
-	 *		</li>
-	 *		<li>Einstellungen<ul>
+	 *		<li>Einstellungen:<ul>
 	 *				<li>Zeichnet das Einstellungs-GUI.</li></ul>
+	 *		</li>
+	 *		<li>Neues Passwort:<ul>
+	 *				<li>Erstellt ein neues <i>PWDHelfer</i>-Objekt und ruft die <i>drawPWDSet()</i>-Methode
+	 *				darauf auf.</li></ul>
 	 *		</li>
 	 *	</ul>
 	 *
@@ -1100,17 +1083,12 @@ class TinyAdminGUI {
 											"Falls nicht, oder falls Sie nähere Informationen benötigen, besuchen Sie bitte \n" +
 											"die Website des Autors unter http://www.tinyadmin.org .",
 											"Über", JOptionPane.INFORMATION_MESSAGE, infoIcon_ref);
-			} else if (ev_ref.getActionCommand().equals("Reset")) {
-				for (int i=0; i<mainHosts_ref.length; i++) {
-					((JCheckBox)mainHosts_ref[i][1]).setSelected(true);
-				} //endfor
-				setStandardText();
-				eCBox_ref.setSelectedIndex(0);
-				psCBox_ref.setSelectedIndex(2);
-				ccCombo_ref.setSelectedIndex(0);
 			} else if (ev_ref.getActionCommand().equals("Einstellungen")) {
 				closeOpenWindows(0);
 				settingsGUI_ref = new TinyAdminSettingsGUI(tAShell_ref.getGUI());
+			} else if (ev_ref.getActionCommand().equals("Neues Passwort")) {
+				PWDHelfer pwdHelfer_ref = new PWDHelfer(tAShell_ref);
+				pwdHelfer_ref.drawPWDSet();
 			} //endif
 		} //endmethod actionPerformed
 	} //endclass MenuListener

@@ -1,8 +1,7 @@
 package de.home.tinyadmin;
 
-//--- Importe
-import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.KeySpec;
+// --- Importe
+import java.security.MessageDigest;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -63,82 +62,180 @@ import javax.crypto.spec.PBEParameterSpec;
 /**	
 *	<p>Helfer-Klasse fuer die Kryptographie. 
 *	Wird zum Ent- bzw. Verschluesseln von Strings genutzt. Das Passwort wird bei der
-*	Erstellung eines Objektes dieser Klasse uebergeben.</p> 
-*	<p>Das Salt, welches mit dem Passwort gemixt wird und sozusagen als zweiter Schluessel 
-*	dient, ist bereits fest in diese Klasse integriert.</p>
-*	<p>Als Verschluesselungsmethode dient <i>PBE</i> mit <i>MD5</i> und <i>DES</i>.</p>
-*
+*	Erstellung eines Objektes dieser Klasse uebergeben.</p>
+*	<p>Strings werden mit folgendem Algorithmus verschluesselt:
+*	<i>"PBEWithMD5AndDES/CBC/PKCS5Padding"</i>
+*	Der Passwort-Hash fuer das Benutzerpasswort verwendet hingegen <i>"SHA-1"</i>.</p>
+*	
 * 	@version 0.3 von 06.2011
 *
 * 	@author Tobias Burkard
 */
 class KryptoHelfer {
 	// --- Attribute
-    private Cipher ecipher_ref;			// Cipherobjekt fuer das Verschluesseln
-    private Cipher dcipher_ref;			// Cipherobjekt fuer das Entschluesseln
-    private byte[] salt_ref = {(byte)0xA9, (byte)0x9B, (byte)0xC8, (byte)0x32,(byte)0x56, (byte)0x35, 
-    							(byte)0xE3, (byte)0x03};	// Salt fuer die Kryptographie
-    private int iterationCount = 19;	// Anzahl der Iterationen fuer die Verschluesselung
-    
-    // --- Konstruktoren
-    /**	
-	*	Initialisiert alle fuer die Kryptographie noetigen Variablen anhand des
-	*	uebergebenen Keys. Der Schluessel wird durch ein <i>IOHelfer</i>-Objekt
-	*	uebergeben.
-	*
-	*	@see IOHelfer
-	*/
-    KryptoHelfer(String passPhrase_ref) {
-        try {
-            KeySpec keySpec_ref = new PBEKeySpec(passPhrase_ref.toCharArray(), salt_ref, iterationCount);
-            SecretKey key_ref = SecretKeyFactory.getInstance("PBEWithMD5AndDES").generateSecret(keySpec_ref);
-            ecipher_ref = Cipher.getInstance(key_ref.getAlgorithm());
-            dcipher_ref = Cipher.getInstance(key_ref.getAlgorithm());
-            AlgorithmParameterSpec paramSpec_ref = new PBEParameterSpec(salt_ref, iterationCount);
-            ecipher_ref.init(Cipher.ENCRYPT_MODE, key_ref, paramSpec_ref);
-            dcipher_ref.init(Cipher.DECRYPT_MODE, key_ref, paramSpec_ref);
-        } catch (Exception ex_ref) {
-        	ex_ref.printStackTrace();
-        } //endtry
-    } //endconstructor
-    
-    // --- Methoden
-    /**
-	 *	Verschluesselt den uebergebenen String.
+	private Cipher ecipher_ref;						// Haupt-Objekt fuer die Entschluesselung
+	private Cipher dcipher_ref;						// Haupt-Objekt fuer die Verschluesselung
+	@SuppressWarnings("restriction")
+	private sun.misc.BASE64Encoder encoder_ref;		// Encodiert Strings in Bytefolgen
+	@SuppressWarnings("restriction")
+	private sun.misc.BASE64Decoder decoder_ref;		// Decodiert Bytefolgen in String
+	private String pwdString_ref;					// Das Passwort
+	
+	// --- Konstruktoren
+	/**
+	 *	Initialisiert ein neues KryptoHelfer-Objekt mit dem uebergebenen Passwort. Hier wird
+	 *	auch das Salt und die Anzahl der Iterationen festgelegt. Zur Initialisierung dient
+	 *	die Methode <i>init()</i>.
+	 *
+	 *	@param pwd_ref Passwort fuer die Verschluesselung.
+	 *	@see #init(char[], byte[], int)
+	 */
+	@SuppressWarnings("restriction")
+	KryptoHelfer(String pwd_ref) {
+		pwdString_ref = pwd_ref;
+		encoder_ref = new sun.misc.BASE64Encoder();
+		decoder_ref = new sun.misc.BASE64Decoder();
+		
+		byte[] salt_ref = {(byte) 0xa3, (byte) 0x21, (byte) 0x24, (byte) 0x2c,
+				(byte) 0xf2, (byte) 0xd2, (byte) 0x3e, (byte) 0x19};
+		int iterations = 16;
+		
+		init(pwd_ref.toCharArray(), salt_ref, iterations);
+	} //endconstructor
+	
+	/**
+	 * 	Initialisiert das Kryptohelfer-Objekt mit den uebergebenen Werten.
+	 * 	Es werden alle fuer die Verschluesselung noetigen Variablen
+	 * 	und Objekte initialisiert/erstellt.
 	 * 
-	 *	@param str_ref Der zu verschluesselnde String.
-	 *	@return Der verschluesselte String.
+	 * @param pass_ref	Das Passwort fuer die Verschluesselung.
+	 * @param salt_ref	Das Salt fuer die Verschluesselung.
+	 * @param iterations Die Anzahl der Iterationen fuer die Verschluesselung.
+	 */
+	private void init(char[] pass_ref, byte[] salt_ref, int iterations) {
+		try {
+			PBEParameterSpec ps_ref = new PBEParameterSpec(salt_ref, 20);
+			SecretKeyFactory kf_ref = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
+			SecretKey k_ref = kf_ref.generateSecret(new PBEKeySpec(pass_ref));
+			ecipher_ref = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
+			ecipher_ref.init(Cipher.ENCRYPT_MODE, k_ref, ps_ref);
+			dcipher_ref = Cipher.getInstance("PBEWithMD5AndDES/CBC/PKCS5Padding");
+			dcipher_ref.init(Cipher.DECRYPT_MODE, k_ref, ps_ref);
+		} catch (Exception ex_ref) {
+			ex_ref.printStackTrace();
+		} //endtry
+	} //endmethod init
+    
+	// --- Methoden
+	/**
+	 *	Verschluesselt den uebergebenen String und liefert
+	 *	das Ergebnis (ebenfalls als String) zurueck.
+	 *
+	 *	@param msg_ref Der zu verschluesselnde String.
 	 */
     @SuppressWarnings("restriction")
-	String encrypt(String str_ref) {
-        try {
-            byte[] utf8_ref = str_ref.getBytes("UTF8");
-            byte[] enc_ref = ecipher_ref.doFinal(utf8_ref);
-            return new sun.misc.BASE64Encoder().encode(enc_ref);
-        } catch (Exception ex_ref) {
-        	ex_ref.printStackTrace();
-        } //endtry
-        
-        return null;
+	String encrypt(String msg_ref) {
+    	try {
+			byte[] utf8_ref = msg_ref.getBytes("UTF8");
+			byte[] enc_ref = ecipher_ref.doFinal(utf8_ref);
+			return encoder_ref.encode(enc_ref);
+		} catch (Exception ex_ref) {
+			ex_ref.printStackTrace();
+		} //endtry
+		
+		return null;
     } //endmethod encrypt
 
     /**
-	 *	Entschluesselt den uebergebenen String.
-	 * 
-	 *	@param str_ref Der zu entschluesselnde String.
-	 *	@return Der entschluesselte String.
-	 */
+     *	Entschluesselt den uebergebenen String und gibt
+     * 	das Ergebnis (ebenfalls als String) zurueck.
+     * 
+     * 	@param msg_ref Der zu entschluesselnde String.
+     * 	@return Der entschluesselte String.
+     */
     @SuppressWarnings("restriction")
-	String decrypt(String str_ref) {
-        try {
-            byte[] dec_ref = new sun.misc.BASE64Decoder().decodeBuffer(str_ref);
-            byte[] utf8_ref = dcipher_ref.doFinal(dec_ref);
-            return new String(utf8_ref, "UTF8");
-        } catch (Exception ex_ref) {
-        	ex_ref.printStackTrace();
-        } //endtry
-        
-        return null;
+	String decrypt(String msg_ref) {
+    	try {
+			byte[] dec_ref = decoder_ref.decodeBuffer(msg_ref);
+			byte[] utf8_ref = dcipher_ref.doFinal(dec_ref);
+			return new String(utf8_ref, "UTF8");
+		} catch (Exception ex_ref) {
+			ex_ref.printStackTrace();
+		} //endtry
+		
+		return null;
     } //endmethod decrypt
+    
+    /**
+     *	Laesst den SHA-1 Hash des gesetzten Passwortes durch die Methode
+     *	<i>computeHash()</i> ermitteln und wandelt das so gewonnene
+     *	<i>byte[]</i>-Array mit der Methode <i>byteArrayToHexString()</i> 
+     *	wieder in einen String um. Dieser wird dann zurueckgegeben.
+     *	
+     * 	@return Der Hash des vom Benutzer gesetzten Passwortes in String-Form.
+     * 	@see #computeHash(String)
+     * 	@see #byteArrayToHexString(byte[])
+     */
+    String getPWDHash() {
+    	return byteArrayToHexString(computeHash(pwdString_ref));
+    } //endmethod getPWDHash
+    
+    /**
+     *	Vergleicht den uebergebenen Passwort-Hash mit dem durch
+     *	die Methode <i>getPWDHash()</i> ermittelten Hash, welcher
+     *	das momentan gesetzte Passwort repraesentiert.	
+     *
+     * 	@param hash_ref	Der zu pruefende Hash.
+     * 	@return	<i>true</i> falls die Hashes uebereinstimmen, <i>false</i> wenn nicht.
+     */
+    boolean hashMatchesPWD(String hash_ref) {
+    	String pwdHash_ref = getPWDHash();
+    	if (pwdHash_ref.equals(hash_ref)) {
+    		return true;
+    	} else {
+    		return false;
+    	} //endif
+    } //endmethod hashMatchesPWD
+    
+    /**
+     *	Erzeugt einen SHA-1 Hash fuer den uebergebenen String und gibt diesen als 
+     *	<i>byte[]</i>-Array zurueck.
+     *
+     * 	@param str_ref Der String fuer den ein SHA-1 Hash erstellt werden soll.
+     * 	@return Der ermittelte Hash fuer den uebergebenen String.
+     */
+    private byte[] computeHash(String str_ref) {
+       try {
+    	   MessageDigest md_ref = null;
+    	   md_ref = MessageDigest.getInstance("SHA-1");
+	       md_ref.reset();
+	       md_ref.update(str_ref.getBytes());
+	       return  md_ref.digest();
+       } catch (Exception ex_ref) {
+    	   ex_ref.printStackTrace();
+       } //endtry
+       
+       return null;
+    } //endmethod computeHash
+    
+    /**
+     *	Rechnet die Byte-Werte im uebergebenen <i>byte[]</i>-Array, welche
+     *	einzelne Zeichen repraesentieren, wieder in einen String um.
+     *
+     * 	@param b_ref Das Array, von dem eine String-Repraesentation erstellt werden soll.
+     * 	@return Der String, der das Array repraesentiert.
+     */
+    private String byteArrayToHexString(byte[] b_ref){
+        StringBuffer sb_ref = new StringBuffer(b_ref.length * 2);
+        for (int i=0; i<b_ref.length; i++){
+          int v = b_ref[i] & 0xff;
+          if (v < 16) {
+            sb_ref.append('0');
+          } //endif
+          sb_ref.append(Integer.toHexString(v));
+        } //endfor
+        
+        return sb_ref.toString().toUpperCase();
+     } //endmethod byteArrayToHexString
     
 } //endclass KryptoHelfer

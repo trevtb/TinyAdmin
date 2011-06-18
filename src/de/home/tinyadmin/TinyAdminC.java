@@ -83,7 +83,7 @@ public class TinyAdminC {
 	*	@see MessageFacility
 	*/
 	public TinyAdminC() {
-		helfer_ref = new IOHelfer(this);
+		helfer_ref = new IOHelfer();
 		test_ref = new TestHelfer();
 		gui_ref = new TinyAdminGUI(this);
 		msgFac_ref = new MessageFacility(this);
@@ -93,14 +93,77 @@ public class TinyAdminC {
 	// --- Methoden
 	/**
 	 *	Die <i>main()</i>-Methode der Anwendung. Es wird ein neues <i>TinyAdminC</i>-Objekt erstellt und
-	 *	die <i>paintGUI()</i>-Methode darauf aufgerufen.
+	 *	die <i>initializeStart()</i>-Methode darauf aufgerufen.
 	 *
-	 *	@see #paintGUI()
+	 *	@see #initializeStart()
 	 */
 	public static void main(String[] args) {
 		TinyAdminC main_ref = new TinyAdminC();
-		main_ref.paintGUI();
+		main_ref.initializeStart();
 	} //endmethod main
+	
+	/**
+	 *	Ruft die <i>drawGUI()</i>-Methode auf dem Haupt-GUI auf, um dieses zu zeichnen.
+	 *
+	 *	@see TinyAdminGUI#drawGUI()
+	 */
+	void paintGUI() {
+		gui_ref.drawGUI();
+	} //endmethod initializeStart
+	
+	/**
+	 *	<p>Versucht dem GUI ein natives Look&Feel zu verleihen. Hierzu macht es gebrauch von der statischen
+	 *	Methode <i>setNativeLookAndFeel()</i> der Klasse <i>LookAndFeelHelfer</i>.</p> <p>Gelingt dies nicht, wird 
+	 *	die ebenfalls statische Methode <i>setJavaLookAndFeel()</i> dieser Klasse aufgerufen und das GUI 
+	 *	erhaelt den standard Java-Swing-Look.</p>
+	 *
+	 *	@see LookAndFeelHelfer
+	 *	@see LookAndFeelHelfer#setNativeLookAndFeel()
+	 *	@see LookAndFeelHelfer#setJavaLookAndFeel()
+	 */
+	private void tryNativeLook() {
+		try {
+			LookAndFeelHelfer.setNativeLookAndFeel();
+		} catch (Exception ex_ref) {
+			try {
+				LookAndFeelHelfer.setJavaLookAndFeel();
+			} catch (Exception e_ref) {
+				e_ref.printStackTrace();
+			} //endtry
+		} //endtry
+	} //endmethod tryNativeLook
+	
+	/**
+	 *	<p>Diese Methode fuehrt den eigentlichen Programmstart durch.
+	 *	Zuerst wird versucht mit Hilfe der Methode <i>tryNativeLook()</i>
+	 *	ein natives Look & Feel zu etablieren.</p>
+	 *	<p>Im Anschluss wird mit der Methode <i>validateSettings()</i> des TestHelfer-Objekts
+	 *	ermittelt, ob eine gueltige, mit der Version kompatible Einstellungsdatei
+	 *	existiert.</p>
+	 *	<ul>
+	 *		<li>Existiert eine valide Einstellungsdatei, wird ein neues <i>PWDHelfer</i>-Objekt
+	 *		erstellt und die <i>drawGUI()</i>-Methode darauf aufgerufen. Dieses kuemmert sich
+	 *		dann um die Passwortabfrage und den Start des GUIs.</li>
+	 *		<li>Existiert bisher keine Datei, wird stattdessen ein neues <i>FirstStartGUI</i>-Objekt
+	 *		erzeugt. Dieses stellt den Wizzard fuer den ersten Start der Anwendung dar.</li>
+	 *	</ul>
+	 *
+	 *	@see #tryNativeLook()
+	 *	@see IOHelfer#validateSettings()
+	 *	@see PWDHelfer
+	 *	@see FirstStartGUI
+	 */
+	void initializeStart() {
+		tryNativeLook();
+		boolean isValid = helfer_ref.validateSettings();
+		if (isValid) {
+			PWDHelfer pwdHelfer_ref = new PWDHelfer(this);
+			pwdHelfer_ref.drawGUI();
+		} else {
+			FirstStartGUI wizzard_ref = new FirstStartGUI(gui_ref);
+			wizzard_ref.drawGUI();
+		} //endif
+	} //endmethod initializeStart
 	
 	/**
 	 *	Liefert eine Referenz auf das Eingabe-/Ausgabe-Helfer Objekt, <i>IOHelfer</i>, zurueck.
@@ -170,15 +233,6 @@ public class TinyAdminC {
 	TestHelfer getTestHelfer() {
 		return test_ref;
 	} //endmethod getTestHelfer
-	
-	/**
-	 *	Ruft auf der Haupt-GUI Referenz die <i>drawGUI()</i>-Methode auf um so das Zeichnen des GUIs auszuloesen.
-	 *
-	 *	@see TinyAdminGUI#drawGUI()
-	 */
-	private void paintGUI() {
-		gui_ref.drawGUI();
-	} //endmethod paintGUI
 	
 	/**
 	 *	Setzt den Zaehler der tatsaechlich aktiven Prozesse um 1 herab.

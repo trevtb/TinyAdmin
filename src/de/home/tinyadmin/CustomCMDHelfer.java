@@ -92,8 +92,9 @@ class CustomCMDHelfer {
 	private JFrame customFrame_ref;	// Fenster (JFrame) des Custom-GUI
 	private TinyAdminGUI gui_ref;	// Referenz auf das HauptGUI
 	private JTextField kommando_ref; // Referenz auf das JTextField, welches den Befehl fasst
-	private JCheckBox asroot_ref;	// Hierrueber legt der Benutzer fest, ob der Befehl als root ausgefuehrt
+	private JCheckBox asroot_ref;	// Hierueber legt der Benutzer fest, ob der Befehl als root ausgefuehrt
 									// werden soll
+	private static boolean isLock;	// Legt fest, ob der Ok/Enter-Button bereits gedrueckt wurde
 	
 	/**	
 	*	Setzt die uebergebene Referenz auf das Haupt-GUI und ruft die <i>drawGUI()</i>-Methode 
@@ -105,6 +106,7 @@ class CustomCMDHelfer {
 	// --- Konstruktoren
 	CustomCMDHelfer (TinyAdminGUI gui_ref) {
 		this.gui_ref = gui_ref;
+		CustomCMDHelfer.isLock = false;
 		drawGUI();
 	} //endconstructor
 	
@@ -125,7 +127,6 @@ class CustomCMDHelfer {
 		customFrame_ref = new JFrame("Kommando-Eingabe");
 		customFrame_ref.addWindowListener(new WindowEventListener());
 		customFrame_ref.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		customFrame_ref.setAlwaysOnTop(true);
 		ImageIcon customFrameIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/customFrameIcon.png"));
 		customFrame_ref.setIconImage(customFrameIcon_ref.getImage());
 		Box bgBox_ref = new Box(BoxLayout.Y_AXIS);
@@ -178,19 +179,19 @@ class CustomCMDHelfer {
 	 *	<p>Baut unter Zuhilfenahme der <i>getActionData()</i>-Methode des Haupt-GUIs eine Matrix,
 	 *	welche an die <i>performAction()</i>-Methode des Hauptprogramms weitergegeben werden kann.</p>
 	 *	<p>Dies geschieht nur dann, wenn der Benutzer auch wirklich einen Befehl eingegeben hat: Ist das
-	 *	Textfeld leer, macht die Methode garnichts</p>
+	 *	Textfeld leer, macht die Methode garnichts.</p>
 	 *	<p>Die zu uebergebende Matrix erhaelt eine 10. Spalte, in der sich der an die Methode uebergebene Befehl 
 	 *	<i>action_ref</i> befindet.</p>
 	 *	<p>Der <i>performAction()</i> Methode wird auch mitgeteilt, ob der Benutzer die Ausfuehrung als 
 	 *	<i>root</i> wuenscht oder nicht. Dies wird ueber das 2. Argument (<i>boolean sudo</i>) gesteuert, 
 	 *	welches auf <i>true</i> gesetzt wird, falls der Benutzer die CheckBox zur Ausfuehrung als root
 	 *	markiert hat.</p>
-	 *	<p>Der Aktionstyp wird auf "custom" gesetzt.</p>
+	 *	<p>Der Aktionstyp wird auf "custom" gesetzt. Ist die Methode beendet, wird die statische Lock-Variable
+	 *	<i>isLock</i> wieder auf <i>false</i> gesetzt.</p>
 	 * 
 	 * 	@param action_ref Der vom Benutzer eingegebene Befehl.
 	 * 	@see TinyAdminGUI#getActionData()
-	 * 	@see TinyAdminC#performAction(String, boolean, String[][], int)
-	 * 	
+	 * 	@see TinyAdminC#performAction(String, boolean, String[][], int)	
 	 */
 	void doAction(String action_ref) {
 		if (!action_ref.equals("")) {
@@ -211,6 +212,7 @@ class CustomCMDHelfer {
 			boolean sudo = asroot_ref.isSelected();
 			
 			gui_ref.getMainC().performAction("custom", sudo, actionData_ref, gui_ref.getProcesses());
+			CustomCMDHelfer.isLock = false;
 		} //endif
 	} //endmethod doAction
 	
@@ -220,7 +222,9 @@ class CustomCMDHelfer {
 	/**
 	 *	Listener fuer die "Ok"- und "Abbrechen"-Buttons.
 	 *	<ul><li>"Ok" ruft die <i>doAction()</i>-Methode auf und uebergibt ihr dabei den vom Benutzer in das
-	 *	JTextField <i>kommando_ref</i> eingegebenen Befehl.</li>
+	 *	JTextField <i>kommando_ref</i> eingegebenen Befehl. Dies geschicht nur, falls die statische Lock-Variable
+	 *	<i>isLock</i> nicht auf <i>true</i> gesetzt ist, um zu verhindern, dass der Benutzer das Kommando doppelt
+	 *	abschickt. Vor dem Aufruf der <i>doAction()</i> Methode wird die Lock-Variable noch auf <i>true</i> gesetzt.</li>
 	 *	<li>"Abbrechen" laesst den Frame <i>customFrame_ref</i> verschwinden, setzt dessen Referenz
 	 *	gleich <i>null</i> und setzt eine entsprechende Statusmeldung im HauptGUI ab.</li></ul>
 	 *
@@ -233,7 +237,8 @@ class CustomCMDHelfer {
 	 */
 	private class CustomButtonListener implements ActionListener {
 		public void actionPerformed(ActionEvent ev_ref) {
-			if (ev_ref.getActionCommand().equals("Ok")) {
+			if (ev_ref.getActionCommand().equals("Ok") && !CustomCMDHelfer.isLock) {
+				CustomCMDHelfer.isLock = true;
 				doAction(kommando_ref.getText());
 			} else if (ev_ref.getActionCommand().equals("Abbrechen")) {
 				gui_ref.setStatusText("Aktion vom Benutzer abgebrochen.");
@@ -248,6 +253,9 @@ class CustomCMDHelfer {
 	 *	befindet, um so das gleiche Ergebnis wie durch einen Druck auf den "Ok"-Button zu erzielen.
 	 *	Ruft die <i>doAction()</i>-Methode auf und uebergibt ihr dabei den vom Benutzer in das
 	 *	JTextField <i>kommando_ref</i> eingegebenen Befehl.</p>
+	 *	<p>Dies geschicht nur, falls die statische Lock-Variable
+	 *	<i>isLock</i> nicht auf <i>true</i> gesetzt ist, um zu verhindern, dass der Benutzer das Kommando doppelt
+	 *	abschickt. Vor dem Aufruf der <i>doAction()</i> Methode wird die Lock-Variable noch auf <i>true</i> gesetzt.</p>
 	 *
 	 *	@see CustomCMDHelfer#doAction(String)
 	 *
@@ -260,7 +268,8 @@ class CustomCMDHelfer {
 		public void keyReleased(KeyEvent ev_ref) {}
 		public void keyPressed(KeyEvent ev_ref) {
 			int key = ev_ref.getKeyCode();
-			if (key == KeyEvent.VK_ENTER) {
+			if (key == KeyEvent.VK_ENTER && !CustomCMDHelfer.isLock) {
+				CustomCMDHelfer.isLock = true;
 				doAction(kommando_ref.getText());
 		     } //endif
 		} //endmethod keyPressed

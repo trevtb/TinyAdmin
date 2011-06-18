@@ -73,7 +73,7 @@ import javax.swing.border.TitledBorder;
 ------------------------------------------------------------------------------------*/
 
 /**
- *	<p>Stellt das GUI bereit, mit dem neue Hosteintraege hinzugefuegt werden koennen.
+ *	<p>Stellt das GUI bereit, mit dem neue Hosteintraege hinzugefuegt oder bearbeitet werden koennen.
  *	Die einzelnen GUI-Komponenten (JTextFields etc.) werden in der Matrix <i>guiComponents_ref</i>
  *	gespeichert.</p>
  *	<p>Die Buttons erhalten einen <i>ButtonListener</i>.</p>
@@ -115,34 +115,72 @@ class AddHostGUI {
 	
 	// --- Methoden
 	/**
-	 *	<p>Zeichnet das GUI zum Hinzufuegen/Bearbeiten eines Hosteintrages.
-	 *	Es wird ein Liste aus Labels (Namen des Parameters, z.B. "IP-Adresse") 
-	 *	und der entsprechenden GUI-Komponente erstellt, in die der Benutzer die Einstellungen
-	 *	eintragen kann.</p>
-	 *	<p>Die GUI-Komponenten werden in der Matrix <i>guiComponents_ref</i> gespeichert.
-	 *	Die Textfelder werden mit der am Anfang im Konstruktor uebergebenen Matrix gefuellt.</p>
+	 *	<p>Dies ist die Standardmethode zum Zeichnen des GUIs, wenn es in einem eigenen
+	 *	JFrame dargestellt werden soll</p>
+	 *	<p>Diese Methode bezieht das Panel, welches das eigentliche GUI beinhaltet,
+	 *	ueber die Methode <i>getPanel()</i> und die Buttons ueber die Methode
+	 *	<i>getButtonBox()</i>. Diese Methode befuellt und erstellt somit lediglich das
+	 *	Fenster selbst.</p>
+	 *
+	 *	@see #getPanel(int type)
+	 *	@see #getButtonBox()
 	 */
 	void drawGUI() {
-		createFieldValues();
 		if (pos != -1) {
 			addHostFrame_ref = new JFrame("Hosteintrag bearbeiten");
 		} else { 
 			addHostFrame_ref = new JFrame("Neuen Hosteintrag erstellen");
 		} //endif
 		addHostFrame_ref.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		addHostFrame_ref.setAlwaysOnTop(true);
 		ImageIcon addHostIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/addHostFrameIcon.png"));
 		addHostFrame_ref.setIconImage(addHostIcon_ref.getImage());
-		Box backgroundBox_ref = new Box(BoxLayout.Y_AXIS);
-		backgroundBox_ref.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+		
+		int type;
+		if (pos != -1) {
+			type = 0;
+		} else {
+			type = 1;
+		} //endif
+		JPanel addPan_ref = getPanel(type);
+		addPan_ref.add(Box.createVerticalStrut(25));
+		addPan_ref.add(getButtonBox());
+		
+		addHostFrame_ref.getContentPane().add(addPan_ref);
+		addHostFrame_ref.pack();
+		addHostFrame_ref.setResizable(false);
+		addHostFrame_ref.setVisible(true);
+	} //endmethod drawGUI
+	
+	/**
+	 *	<p>Zeichnet das Panel fuer das Hinzufuegen/Bearbeiten eines Hosteintrages.
+	 *	Es wird ein Liste aus Labels (Namen des Parameters, z.B. "IP-Adresse") 
+	 *	und der entsprechenden GUI-Komponente erstellt, in die der Benutzer die Einstellungen
+	 *	eintragen kann.</p>
+	 *	<p>Die GUI-Komponenten werden in der Matrix <i>guiComponents_ref</i> gespeichert.
+	 *	Die Textfelder werden mit der am Anfang im Konstruktor uebergebenen Matrix gefuellt.</p>
+	 *	<p>Je nachdem welcher <i>int type</i> uebergeben wird, wird entweder ein GUI zum
+	 *	bearbeiten eines Eintrags, zum erstellen eines neuen Eintrags, oder ein GUI
+	 *	fuer die Erstellung des ersten Eintrags mit dem Wizzard erstellt.</p>
+	 *
+	 *	@param type Die Art der Aktion: 0=bearbeiten, 1=neu, 2=neu_im_wizzard
+	 */
+	JPanel getPanel(int type) {
+		createFieldValues();
+		JPanel addHostPan_ref = new JPanel();
+		BoxLayout lay_ref = new BoxLayout(addHostPan_ref, BoxLayout.Y_AXIS);
+		addHostPan_ref.setLayout(lay_ref);
+		addHostPan_ref.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 		
 		Box infoBox_ref = new Box(BoxLayout.Y_AXIS);
 		infoBox_ref.setBorder(new TitledBorder("Hinweis"));
 		infoBox_ref.add(Box.createVerticalStrut(5));
-		if (pos != -1) {
+		if (type == 0) {
 			infoBox_ref.add(new JLabel("Hier können Sie den gewählten Hosteintrag bearbeiten."));
-		} else {
+		} else if (type == 1){
 			infoBox_ref.add(new JLabel("Hier können Sie einen neuen Hosteintrag erstellen."));
+		} else if (type == 2) {
+			infoBox_ref.add(new JLabel("Das System hat für Sie einen neuen Standardeintrag erstellt:"));
+			infoBox_ref.add(new JLabel("Hier könnten Sie diesen bearbeiten."));
 		} //endif
 		infoBox_ref.add(Box.createVerticalStrut(5));
 		infoBox_ref.add(new JLabel("Falls Sie ein KeyFile auswählen, wird dieses mit dem angegebenen"));
@@ -154,16 +192,17 @@ class AddHostGUI {
 		Box infoBoxWrapper_ref = new Box(BoxLayout.X_AXIS);
 		infoBoxWrapper_ref.add(infoBox_ref);
 		infoBoxWrapper_ref.add(Box.createHorizontalStrut(10));
+		ImageIcon addHostIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/addHostFrameIcon.png"));
 		infoBoxWrapper_ref.add(new JLabel(addHostIcon_ref));
 		infoBoxWrapper_ref.add(Box.createHorizontalStrut(10));
-		backgroundBox_ref.add(infoBoxWrapper_ref);
-		backgroundBox_ref.add(Box.createVerticalStrut(25));
+		addHostPan_ref.add(infoBoxWrapper_ref);
+		addHostPan_ref.add(Box.createVerticalStrut(25));
 		
 		JPanel paramPan_ref = new JPanel();
 		GridLayout paramLayout_ref = new GridLayout(fieldNames_ref.length, 2);
 		paramPan_ref.setLayout(paramLayout_ref);
 		paramPan_ref.setBorder(new TitledBorder("Host-Parameter"));
-		backgroundBox_ref.add(paramPan_ref);
+		addHostPan_ref.add(paramPan_ref);
 		for (int i=0; i<fieldNames_ref.length; i++) {
 			paramPan_ref.add(new JLabel(fieldNames_ref[i]));
 			if (i!=4 && i!=5 && i!=6 && i!=8) {
@@ -200,8 +239,19 @@ class AddHostGUI {
 				((JComboBox)guiComponents_ref[i]).setSelectedItem(entry_ref[i]);
 			} //endif
 		} //endfor
-		backgroundBox_ref.add(Box.createVerticalStrut(25));
 		
+		return addHostPan_ref;
+	} //endmethod getPanel
+	
+	/**
+	 *	<p>Erzeugt die Box, welche die Buttons des AddHostGUIs fasst.</p>
+	 *	<p>In Abhaengigkeit davon, ob ein neuer Eintrag erzeugt oder ein vorhandener
+	 *	editiert werden soll, wird neben dem Schliessen- entweder ein Uebernehmen-
+	 *	oder Speichern-Button erzeugt.</p>
+	 *
+	 * 	@return Die Box, welche die Buttons fasst.
+	 */
+	private Box getButtonBox() {
 		Box buttonBox_ref = new Box(BoxLayout.X_AXIS);
 		ImageIcon savButIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/saveIcon.png"));
 		ImageIcon cancButIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/cancelIcon.png"));
@@ -222,13 +272,9 @@ class AddHostGUI {
 		buttonBox_ref.add(savBut_ref);
 		buttonBox_ref.add(Box.createHorizontalStrut(10));
 		buttonBox_ref.add(cancBut_ref);
-		backgroundBox_ref.add(buttonBox_ref);
 		
-		addHostFrame_ref.getContentPane().add(backgroundBox_ref);
-		addHostFrame_ref.pack();
-		addHostFrame_ref.setResizable(false);
-		addHostFrame_ref.setVisible(true);
-	} //endmethod drawGUI
+		return buttonBox_ref;
+	} //endmethod getButtonBox
 	
 	/**
 	 *	<p>Fuellt die GUI-Komponenten mit Werten, in Abhaengigkeit von der am Anfang
@@ -267,22 +313,171 @@ class AddHostGUI {
 	} //endmethod createFieldValues
 	
 	/**
+	 *	<p>Bezieht die Einstellungs-Matrix ueber die Methode <i>getSettings()</i>
+	 *	des Haupt-GUIs und aendert den ausgewaehlten Eintrag auf die vom
+	 *	Benutzer eingegebenen Einstellungen bzw. fuegt der Matrix einen neuen Eintrag
+	 *	hinzu. Die so neu erstellte Matrix wird dann von der Methode zurueckgeliefert.</p>
+	 *	<p>Falls ein oder mehrere der vom Benutzer angegebenen Parameter ungueltig sind,
+	 *	wird eine Fehlermeldung mit Hilfe der JOptionPane in dem am Anfang an die Methode
+	 *	uebergebenen JFrame angezeigt.</p>
+	 *
+	 * @param frame_ref Der Frame, in dem eventuell auftretende Fehlermeldungen angezeigt werden sollen.
+	 * @return Die neu gewonnene, speicherbare Matrix mit Einstellungen.
+	 */
+	String[][][] getContent(JFrame frame_ref) {
+		boolean hasInvalidNames = false;
+		boolean hasInvalidMACs = false;
+		boolean hasNoUser = false;
+		boolean hasNoPWDs = false;
+		boolean sudoNoPWD = false;
+		boolean hasInvalidHosts = false;
+		boolean hasInvalidPort = false;
+		
+		for (int i=0; i<entry_ref.length; i++) {
+			if (i!=4 && i!=5 && i!=8) {
+				entry_ref[i] = (((JTextField)guiComponents_ref[i]).getText()) + "";
+			} else if (i==4 || i==5) {
+				entry_ref[i] = (new String(((JPasswordField)guiComponents_ref[i]).getPassword())) + "";
+			} else if (i==8) {
+				entry_ref[i] = (String)(((JComboBox)guiComponents_ref[i]).getSelectedItem()) + "";
+			} //endif
+		} //endfor	
+		
+		if ((((JTextField)guiComponents_ref[0]).getText().toCharArray().length > 12) || (((JTextField)guiComponents_ref[0]).getText().equals(""))) {
+	    	hasInvalidNames = true;
+        } //endif
+		
+		if (!mainGUI_ref.getTestHelfer().isValidPort(((JTextField)guiComponents_ref[2]).getText())) {
+				hasInvalidPort = true;
+				entry_ref[2] = "22";
+		} //endif	
+			
+		if (((JTextField)guiComponents_ref[3]).getText().equals("")) {
+				hasNoUser = true;
+		} else {
+			if ((!mainGUI_ref.getTestHelfer().isRootLogin(((JTextField)guiComponents_ref[3]).getText())) &&
+						(new String(((JPasswordField)guiComponents_ref[5]).getPassword())).equals("")) {
+					sudoNoPWD = true;
+			} //endif	
+		} //endif	
+			
+		if (new String(((JPasswordField)guiComponents_ref[4]).getPassword()).equals("")) {
+			hasNoPWDs = true;
+		} //endif
+			
+		if (!((JTextField)guiComponents_ref[7]).getText().equals("")) {
+        	if (!mainGUI_ref.getTestHelfer().isValidMAC(((JTextField)guiComponents_ref[7]).getText())) {
+				hasInvalidMACs = true;
+			} //endif
+        } //endif
+			
+		if (((JTextField)guiComponents_ref[1]).getText().equals("")) {
+				hasInvalidHosts = true;
+				entry_ref[1] = "0.0.0.0";
+		} //endif
+		
+		for (int i=0; i<mainGUI_ref.getSettings()[0].length; i++) {
+			if (i!=pos && pos!=-1 && (mainGUI_ref.getSettings())[0][i][0].equals( ((JTextField)guiComponents_ref[0]).getText() ) ) {
+				hasInvalidNames = true;
+			} //endif
+		} //endfor
+	    
+	    String errorMsg_ref = "";
+	    String infoMsg_ref = "";
+		if (!hasInvalidNames && !hasInvalidMACs && !hasInvalidHosts) {
+			if (hasNoUser) {
+				infoMsg_ref += "ACHTUNG: Sie haben keinen Benutzernamen angegeben.\n" + 
+						"Ihnen werden daher die Funktionen Update, Reboot und Shutdown für diese Hosts\n" + 
+						"nicht zur verfügung stehen.\n\n";
+			} //endif
+			if (hasNoPWDs && ((JTextField)guiComponents_ref[6]).getText().equals("Wählen Sie ein Keyfile aus.")) {
+				infoMsg_ref += "HINWEIS: Sie haben kein Passwort angegeben, nutzen aber kein Keyfile.\n" + 
+								"Falls auf der Zielmaschine zum Login kein Passwort benötigt wird,\n" +
+								"so sollten Sie den Systemadministrator darum bitten, dieses Verhalten aus\n"+
+								"Sicherheitsgründen zu ändern, oder ein Keyfile zu benutzen.\n\n";
+			} //endif
+			if (sudoNoPWD) {
+				infoMsg_ref += "HINWEIS: Sie wollen sich als normaler Benutzer anmelden,\n" + 
+								"geben aber kein Sudo-Passwort an. Falls das Sudo-Passwort auf dem Fremdrechner wirklich nicht gesetzt ist,\n" +
+								"so sollten Sie den Systemadministrator darum bitten, dies aus Sicherheitsgründen zu setzen.\n" +
+								"Falls das Passwort nicht leer ist, sie es aber nicht kennen, so werden sie weder Update-, noch\n" +
+								"Reboot-, noch Shutdown-Aktionen durchführen können.\n\n";
+			} //endif
+			if (hasInvalidPort) {
+				infoMsg_ref += "HINWEIS: Sie haben keinen oder einen ungültigen Port angegeben,\n verwende stattdessen den Standardport 22.\n\n";
+			} //endif
+			if (!infoMsg_ref.equals("")) {
+				infoMsg_ref += "Die Einstellungen wurden dennoch gespeichert.";
+			} //endif
+			String[][][] tempData_ref = new String[2][][];
+		    tempData_ref[1] = mainGUI_ref.getSettings()[1];
+		    
+		    if (entry_ref[6].equals("Wählen Sie ein Keyfile aus.")) {
+	    		entry_ref[6] = "-----";
+	    	} //endif
+		    
+		    if (pos != -1) {
+		    	tempData_ref[0] = mainGUI_ref.getSettings()[0];
+		    	tempData_ref[0][pos] = entry_ref;
+		    } else {
+		    	tempData_ref[0] = new String [(mainGUI_ref.getSettings())[0].length + 1][9];
+		    	for (int i=0; i<(mainGUI_ref.getSettings())[0].length; i++) {
+			        for (int j=0; j<(mainGUI_ref.getSettings())[0][i].length; j++) {
+			            tempData_ref[0][i][j] = mainGUI_ref.getSettings()[0][i][j];
+			        } //endfor
+			    } //endfor
+		    	tempData_ref[0][tempData_ref[0].length-1] = entry_ref;
+		    } //endif	
+		   
+			if (!infoMsg_ref.equals("")) {
+				displayMsg(infoMsg_ref, frame_ref);
+			} //endif
+			return tempData_ref;
+		} else {
+			if (hasInvalidNames) {
+				errorMsg_ref += "FEHLER: Die eingegebene Hostbezeichnung ist ungültig.\n" + 
+								"Die Bezeichnung muss (kleiner/gleich 12 Zeichen) sein\n" +
+								"und darf nicht bereits von einem anderen Eintrag verwendet werden..";
+			} //endif
+			if (hasInvalidMACs) {
+				if (!errorMsg_ref.equals("")) {
+					errorMsg_ref += "\n\n";
+				} //endif
+				errorMsg_ref += "FEHLER: Die eingegebene MAC-Adresse. ist ungültig,\n" +
+								"geben Sie bitte entweder keine oder aber eine gültige Adresse an.";
+			} //endif
+			if (hasInvalidHosts) {
+				if (!errorMsg_ref.equals("")) {
+					errorMsg_ref += "\n\n";
+				} //endif
+				errorMsg_ref += "FEHLER: Sie haben keine(n) IP-Adresse/Hostnamen angegeben.";
+			} //endif
+			displayError(errorMsg_ref, frame_ref);
+			String[][][] error_ref = new String[2][1][1];
+			error_ref[0][0][0] = "error";
+			return error_ref;
+		} //endif
+	} //endmethod getContent
+	
+	/**
 	 *	Zeigt den uebergebenen String als Text einer Fehlermeldung mit Hilfe 
 	 *	der <i>JOptionPane</i> an.
 	 * 
-	 * @param message_ref Der Fehlertext.
+	 * 	@param message_ref Der Fehlertext.
+	 * 	@param frame_ref Der JFrame, in dem die Meldung angezeigt werden soll.
 	 */
-	void displayError(String message_ref) {
-		JOptionPane.showMessageDialog(addHostFrame_ref, message_ref, "Fehler", JOptionPane.ERROR_MESSAGE);
+	void displayError(String message_ref, JFrame frame_ref) {
+		JOptionPane.showMessageDialog(frame_ref, message_ref, "Fehler", JOptionPane.ERROR_MESSAGE);
 	} //endmethod displayError
 	
 	/**
 	 * 	Zeigt eine Informationsnachricht mit Hilfe der <i>JOptionPane</i> an.
 	 * 
 	 * 	@param message_ref Die Meldung, welche angezeigt werden soll.
+	 * 	@param frame_ref Der JFrame, in dem die Meldung angezeigt werden soll.
 	 */
-	private void displayMsg(String message_ref) {
-		JOptionPane.showMessageDialog(addHostFrame_ref, message_ref, "Hinweis", JOptionPane.INFORMATION_MESSAGE);
+	private void displayMsg(String message_ref, JFrame frame_ref) {
+		JOptionPane.showMessageDialog(frame_ref, message_ref, "Hinweis", JOptionPane.INFORMATION_MESSAGE);
 	} //endmethod displayMsg
 	
 	/**
@@ -307,8 +502,8 @@ class AddHostGUI {
 	 *			<li>Ruft die <i>dispose()</i>-Methode auf dem <i>JFrame</i> dieses GUIs auf
 	 *				und schliesst ihn so.</li></ul>
 	 *		</li>
-	 *		<li>save:</ul>
-	 *			<li>Speichert die vom Benutzer getaetigten Einstellungen, in Abhängigkeit
+	 *		<li>save:<ul>
+	 *			<li>Speichert die vom Benutzer getaetigten Einstellungen, in Abhaengigkeit
 	 *			der Variablen <i>int pos</i>, entweder als neuen Eintrag, oder ueberschreibt
 	 *			den Vorhandenen.</li></ul>
 	 *		</li>
@@ -321,8 +516,8 @@ class AddHostGUI {
 	 *	<p>Zum letztlichen Speichern dient die Methode <i>initializeSettings()</i> aus dem
 	 *	Haupt-GUI.</p>
 	 *
-	 *	@see #displayMsg(String message_ref)
-	 *	@see #displayError(String message_ref)
+	 *	@see #displayMsg(String message_ref, JFrame frame_ref)
+	 *	@see #displayError(String message_ref, JFrame frame_ref)
 	 *	@see TinyAdminGUI#initializeSettings(String[][][])
 	 * 
 	 *	@version 0.3 von 06.2011
@@ -346,140 +541,14 @@ class AddHostGUI {
 				addHostFrame_ref.dispose();
 				addHostFrame_ref = null;
 			} else if (ev_ref.getActionCommand().equals("save")) {
-				boolean hasInvalidNames = false;
-				boolean hasInvalidMACs = false;
-				boolean hasNoUser = false;
-				boolean hasNoPWDs = false;
-				boolean sudoNoPWD = false;
-				boolean hasInvalidHosts = false;
-				boolean hasInvalidPort = false;
-				
-				for (int i=0; i<entry_ref.length; i++) {
-					if (i!=4 && i!=5 && i!=8) {
-						entry_ref[i] = (((JTextField)guiComponents_ref[i]).getText()) + "";
-					} else if (i==4 || i==5) {
-						entry_ref[i] = (new String(((JPasswordField)guiComponents_ref[i]).getPassword())) + "";
-					} else if (i==8) {
-						entry_ref[i] = (String)(((JComboBox)guiComponents_ref[i]).getSelectedItem()) + "";
-					} //endif
-				} //endfor	
-				
-				if ((((JTextField)guiComponents_ref[0]).getText().toCharArray().length > 12) || (((JTextField)guiComponents_ref[0]).getText().equals(""))) {
-			    	hasInvalidNames = true;
-		        } //endif
-				
-				if (!mainGUI_ref.getTestHelfer().isValidPort(((JTextField)guiComponents_ref[2]).getText())) {
-						hasInvalidPort = true;
-						entry_ref[2] = "22";
-				} //endif	
-					
-				if (((JTextField)guiComponents_ref[3]).getText().equals("")) {
-						hasNoUser = true;
-				} else {
-					if ((!mainGUI_ref.getTestHelfer().isRootLogin(((JTextField)guiComponents_ref[3]).getText())) &&
-								(new String(((JPasswordField)guiComponents_ref[5]).getPassword())).equals("")) {
-							sudoNoPWD = true;
-					} //endif	
-				} //endif	
-					
-				if (new String(((JPasswordField)guiComponents_ref[4]).getPassword()).equals("")) {
-					hasNoPWDs = true;
-				} //endif
-					
-				if (!((JTextField)guiComponents_ref[7]).getText().equals("")) {
-		        	if (!mainGUI_ref.getTestHelfer().isValidMAC(((JTextField)guiComponents_ref[7]).getText())) {
-						hasInvalidMACs = true;
-					} //endif
-		        } //endif
-					
-				if (((JTextField)guiComponents_ref[1]).getText().equals("")) {
-						System.out.println("Wir haben invalide Hosts!");
-						hasInvalidHosts = true;
-						entry_ref[1] = "0.0.0.0";
-				} //endif
-				
-				for (int i=0; i<mainGUI_ref.getSettings()[0].length; i++) {
-					if (i!=pos && pos!=-1 && (mainGUI_ref.getSettings())[0][i][0].equals( ((JTextField)guiComponents_ref[0]).getText() ) ) {
-						hasInvalidNames = true;
-					} //endif
-				} //endfor
-			    
-			    String errorMsg_ref = "";
-			    String infoMsg_ref = "";
-				if (!hasInvalidNames && !hasInvalidMACs && !hasInvalidHosts) {
-					if (hasNoUser) {
-						infoMsg_ref += "ACHTUNG: Sie haben keinen Benutzernamen angegeben.\n" + 
-								"Ihnen werden daher die Funktionen Update, Reboot und Shutdown für diese Hosts\n" + 
-								"nicht zur verfügung stehen.\n\n";
-					} //endif
-					if (hasNoPWDs && ((JTextField)guiComponents_ref[6]).getText().equals("Wählen Sie ein Keyfile aus.")) {
-						infoMsg_ref += "HINWEIS: Sie haben kein Passwort angegeben, nutzen aber kein Keyfile.\n" + 
-										"Falls auf der Zielmaschine zum Login kein Passwort benötigt wird,\n" +
-										"so sollten Sie den Systemadministrator darum bitten, dieses Verhalten aus\n"+
-										"Sicherheitsgründen zu ändern, oder ein Keyfile zu benutzen.\n\n";
-					} //endif
-					if (sudoNoPWD) {
-						infoMsg_ref += "HINWEIS: Sie wollen sich als normaler Benutzer anmelden,\n" + 
-										"geben aber kein Sudo-Passwort an. Falls das Sudo-Passwort auf dem Fremdrechner wirklich nicht gesetzt ist,\n" +
-										"so sollten Sie den Systemadministrator darum bitten, dies aus Sicherheitsgründen zu setzen.\n" +
-										"Falls das Passwort nicht leer ist, sie es aber nicht kennen, so werden sie weder Update-, noch\n" +
-										"Reboot-, noch Shutdown-Aktionen durchführen können.\n\n";
-					} //endif
-					if (hasInvalidPort) {
-						infoMsg_ref += "HINWEIS: Sie haben keinen oder einen ungültigen Port angegeben,\n verwende stattdessen den Standardport 22.\n\n";
-					} //endif
-					if (!infoMsg_ref.equals("")) {
-						infoMsg_ref += "Die Einstellungen wurden dennoch gespeichert.";
-					} //endif
-					String[][][] tempData_ref = new String[2][][];
-				    tempData_ref[1] = mainGUI_ref.getSettings()[1];
-				    
-				    if (entry_ref[6].equals("Wählen Sie ein Keyfile aus.")) {
-			    		entry_ref[6] = "-----";
-			    	} //endif
-				    
-				    if (pos != -1) {
-				    	tempData_ref[0] = mainGUI_ref.getSettings()[0];
-				    	tempData_ref[0][pos] = entry_ref;
-				    } else {
-				    	tempData_ref[0] = new String [(mainGUI_ref.getSettings())[0].length + 1][9];
-				    	for (int i=0; i<(mainGUI_ref.getSettings())[0].length; i++) {
-					        for (int j=0; j<(mainGUI_ref.getSettings())[0][i].length; j++) {
-					            tempData_ref[0][i][j] = mainGUI_ref.getSettings()[0][i][j];
-					        } //endfor
-					    } //endfor
-				    	tempData_ref[0][tempData_ref[0].length-1] = entry_ref;
-				    } //endif	
-				   
-					if (!infoMsg_ref.equals("")) {
-						displayMsg(infoMsg_ref);
-					} //endif
+				String[][][] tempData_ref = getContent(addHostFrame_ref);
+				if (!tempData_ref[0][0][0].equals("error")) {
 					mainGUI_ref.initializeSettings(tempData_ref);
 					if (mainGUI_ref.getSettingsGUI() != null) {
 						mainGUI_ref.getSettingsGUI().getHostTab().refreshTableData();
 					} //endif
 					addHostFrame_ref.dispose();
 					addHostFrame_ref = null;
-				} else {
-					if (hasInvalidNames) {
-						errorMsg_ref += "FEHLER: Die eingegebene Hostbezeichnung ist ungültig.\n" + 
-										"Die Bezeichnung muss (kleiner/gleich 12 Zeichen) sein\n" +
-										"und darf nicht bereits von einem anderen Eintrag verwendet werden..";
-					} //endif
-					if (hasInvalidMACs) {
-						if (!errorMsg_ref.equals("")) {
-							errorMsg_ref += "\n\n";
-						} //endif
-						errorMsg_ref += "FEHLER: Die eingegebene MAC-Adresse. ist ungültig,\n" +
-										"geben Sie bitte entweder keine oder aber eine gültige Adresse an.";
-					} //endif
-					if (hasInvalidHosts) {
-						if (!errorMsg_ref.equals("")) {
-							errorMsg_ref += "\n\n";
-						} //endif
-						errorMsg_ref += "FEHLER: Sie haben keine(n) IP-Adresse/Hostnamen angegeben.";
-					} //endif
-					displayError(errorMsg_ref);
 				} //endif
 			} //endif
 		} //endmethod actionPerformed

@@ -39,8 +39,8 @@ Features
 - Unterstuetzt viele verschiedene Fremdrechner-Betriebssysteme (Mac OS X, Debian, Fedora, RedHat, CentOS, Mandriva).
 - Sicheres Aufbewahren ihrer Passwoerter auf der Festplatte durch effektive Verschluesselung.
 - Eigene SSH2-Implementierung: Es wird keine weitere Software benoetigt. Das Programm arbeitet also auch unter Windows, obwohl dort kein SSH verfuegbar ist.
-- NEU IN V0.3: Erlaubt die freie Wahl des SSH-Ports fuer jeden Host und die Verwendung von Public Keyfiles.
-- NEU IN v0.3: Schnell-Zugriff auf alle Funktionen und Befehle per TrayIcon.
+- Erlaubt die freie Wahl des SSH-Ports fuer jeden Host und die Verwendung von Public Keyfiles.
+- Schnell-Zugriff auf alle Funktionen und Befehle per TrayIcon.
 
 Unterstuetzte Systeme
 ---------------------

@@ -493,7 +493,7 @@ class SettingsTabKommandos extends JPanel {
 	 *	Beim Standardverhalten wuerde der neue Text zum bereits existierenden hinzuaddiert.</p>
 	 *	<p>Zusaetzlich wird die Zelle wieder farblich neu formatiert. Der Editor sollte also nicht
 	 *	verwendet werden, wenn das durch <i>LookAndFeelHelfer</i> gesetzte Look&Feel
-	 *	fuer die Tabelle beibehalten werden soll soll.</p>
+	 *	fuer die Tabelle beibehalten werden soll.</p>
 	 *
 	 *	@see LookAndFeelHelfer
 	 *

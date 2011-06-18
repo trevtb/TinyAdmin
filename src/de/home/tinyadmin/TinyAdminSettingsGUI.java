@@ -113,7 +113,6 @@ class TinyAdminSettingsGUI {
 	void drawGUI() {
 		settingsFrame_ref = new JFrame("Einstellungen");
 		settingsFrame_ref.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		settingsFrame_ref.setAlwaysOnTop(true);
 		ImageIcon setFrameIcon_ref = new ImageIcon(ClassLoader.getSystemResource("de/home/tinyadmin/resource/setFrameIcon.png"));
 		settingsFrame_ref.setIconImage(setFrameIcon_ref.getImage());
 		Box backgroundBox_ref = new Box(BoxLayout.Y_AXIS);

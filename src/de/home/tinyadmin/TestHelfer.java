@@ -1,5 +1,11 @@
 package de.home.tinyadmin;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+
 /*------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
 --				| Copyright (c) by Tobias Burkard, 2011 |							--
@@ -159,5 +165,24 @@ class TestHelfer {
 		
 		return retVal;
 	} //endmethod isValidPort
+	
+	/** 
+	 *	Ueberprueft, ob der uebergebene String lediglich aus ASCII-Zeichen besteht, oder nicht.
+	 *
+	 * 	@param s_ref Der zu pruefende String.
+	 * 	@return <i>true</i>, falls der String nur ASCII-Zeichen enthaelt - <i>false</i>, wenn nicht.
+	 */
+	boolean isAscii(String s_ref) {
+		byte bytea_ref []  = s_ref.getBytes();
+		CharsetDecoder dec_ref = Charset.forName("US-ASCII").newDecoder();
+		try {
+			CharBuffer cbuf_ref = dec_ref.decode(ByteBuffer.wrap(bytea_ref));
+		    cbuf_ref.toString();
+		} catch (CharacterCodingException ccex_ref) {
+			return false;
+		} //endtry
+		    
+		return true;
+	} //endmethod isAscii
 	
 } //endclass TestHelfer
