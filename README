@@ -26,7 +26,7 @@ Eine Kopie dieser Lizenz haben Sie mit dem Download dieser Software erhalten und
 den Dateinamen "LICENSE.txt".
 
 Features
---------
+---------
 
 - Verwalten Sie mehrere Server gleichzeitig und Verteilen Sie Ihre Aufgabe dabei auf bis zu 10 parallele Prozesse.
 - Zwei Arten von eigenen Kommandos:
@@ -43,7 +43,7 @@ Features
 - Schnell-Zugriff auf alle Funktionen und Befehle per TrayIcon.
 
 Unterstuetzte Systeme
----------------------
+-----------------------
 
 TinyAdmin laeuft auf allen Systeme, auf denen eine JavaSE 1.6 Virtual Machine installiert ist.
 Die Architektur oder das Betriebssystem selbst spielt dabei keine Rolle.
@@ -66,7 +66,7 @@ Die Software speichert ihre Einstellungen im Heimatverzeichnis des Benutzers. Di
 abhaengig vom verwendeten Betriebssystem.
 
 Kontakt
--------
+--------
 
 Projekt Webseite: http://www.tinyadmin.org
 Autor: Tobias Burkard (admin@tinyadmin.org)
